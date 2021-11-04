@@ -1,0 +1,79 @@
+from typing import AsyncGenerator
+
+import asyncio
+
+from aioredis.exceptions import ConnectionError
+from pytest import fixture, mark, raises
+
+from rhubarb.backends.exceptions import UnsubscribeError
+from rhubarb.backends.redis import RedisBackend
+from rhubarb.event import Event
+
+
+@fixture
+async def redis(URL: str) -> AsyncGenerator[Event, None]:
+    redis_backend = RedisBackend(url=URL)
+    await redis_backend.connect()
+    yield redis_backend
+    await redis_backend.disconnect()
+
+
+@mark.asyncio
+class TestRedisBackend:
+    def test_redis_queue(self, redis, URL):
+        assert hasattr(redis, "connect")
+        assert hasattr(redis, "disconnect")
+        assert hasattr(redis, "subscribe")
+        assert hasattr(redis, "unsubscribe")
+        assert hasattr(redis, "publish")
+        assert hasattr(redis, "next_event")
+        assert redis.url == URL
+
+    async def test_redis_connect_disconnect(self, URL):
+        redis = RedisBackend(url=URL)
+        await redis.connect()
+        assert redis._redis
+        await redis.disconnect()
+
+    async def test_redis_connect_invalid(self):
+        with raises(
+            ConnectionError, match=r"Error -\d+ connecting to invalid_url:6379. -\d+."
+        ):  # specific error code appears to differ between systems.
+            redis = RedisBackend(url="redis://invalid_url")
+            await redis.connect()
+
+    async def test_redis_subscribe(self, redis):
+        await redis.subscribe("test-channel")
+        pass
+
+    async def test_redis_unsubscribe(self, redis):
+        await redis.subscribe("test-channel")
+        await redis.unsubscribe("test-channel")
+        assert "test-channel" not in redis._channels
+
+    async def test_redis_unsubscribe_unknown_channel(self, redis):
+        with raises(UnsubscribeError, match="Unknown channel unknown-channel-name"):
+            await redis.unsubscribe("unknown-channel-name")
+
+    async def test_duplicate_subscribe_request(self, redis):
+        await redis.subscribe("test-channel")
+        original_pub_sub = redis._channels["test-channel"]
+        await redis.subscribe("test-channel")
+        new_pub_sub = redis._channels["test-channel"]
+        assert original_pub_sub is new_pub_sub
+
+    async def test_redis_publish(self, redis):
+        await redis.subscribe("test-channel")
+        await redis.subscribe("test-channel-a")
+        await redis.publish("test-channel", "test data")
+        event = await redis.next_event()
+        assert event.channel == "test-channel"
+        assert event.message == "test data"
+        await redis.publish("test-channel", "test data A")
+        event = await redis.next_event()
+        assert event.channel == "test-channel"
+        assert event.message == "test data A"
+        await redis.publish("test-channel-a", "test data B")
+        event = await redis.next_event()
+        assert event.channel == "test-channel-a"
+        assert event.message == "test data B"
