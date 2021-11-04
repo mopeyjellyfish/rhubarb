@@ -4,6 +4,10 @@
 import sys
 from importlib import metadata as importlib_metadata
 
+from .queue import Rhubarb
+
+__all__ = ["Rhubarb"]
+
 
 def get_version() -> str:
     try:
