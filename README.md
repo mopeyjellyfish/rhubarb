@@ -124,7 +124,3 @@ app = Starlette(
 [![License](https://img.shields.io/github/license/mopeyjellyfish/rhubarb)](https://github.com/mopeyjellyfish/rhubarb/blob/master/LICENSE)
 
 This project is licensed under the terms of the `MIT` license. See [LICENSE](https://github.com/mopeyjellyfish/rhubarb/blob/master/LICENSE) for more details.
-
-## Credits [![🚀 Your next Python package needs a bleeding-edge project structure.](https://img.shields.io/badge/python--package--template-%F0%9F%9A%80-brightgreen)](https://github.com/TezRomacH/python-package-template)
-
-This project was generated with [`python-package-template`](https://github.com/TezRomacH/python-package-template)
