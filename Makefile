@@ -39,7 +39,7 @@ formatting: codestyle
 #* Linting
 .PHONY: test
 test:
-	poetry run pytest -c pyproject.toml tests 
+	poetry run pytest --cov-report term-missing --cov=rhubarb -c pyproject.toml tests 
 
 .PHONY: check-codestyle
 check-codestyle:
