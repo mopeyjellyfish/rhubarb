@@ -83,6 +83,10 @@ class Rhubarb:
             from rhubarb.backends.kafka import KafkaBackend
 
             return KafkaBackend
+        elif parsed_url.scheme == "memory":
+            from rhubarb.backends.memory import MemoryBackend
+
+            return MemoryBackend
         else:
             raise UnknownBackend(f'"{parsed_url.scheme}" is not a supported backend!')
 

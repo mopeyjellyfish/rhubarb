@@ -16,7 +16,12 @@ def KAFKA_URL():
     return "kafka://localhost:9092"
 
 
-@fixture(params=["redis://localhost:6379/0", "kafka://localhost:9092"])
+@fixture
+def MEMORY_URL():
+    return "memory://"
+
+
+@fixture(params=["redis://localhost:6379/0", "kafka://localhost:9092", "memory://"])
 def URL(request):
     return request.param
 
