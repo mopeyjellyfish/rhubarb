@@ -1,24 +1,20 @@
-from typing import (
-    Any,
-    AsyncGenerator,
-    AsyncIterator,
-    Callable,
-    Dict,
-    Optional,
-    Set,
-    Union,
-)
+from typing import Any, AsyncGenerator, AsyncIterator, Callable, Optional, Union
 
 import asyncio
 import json
 import logging
 from contextlib import asynccontextmanager, suppress
+from urllib.parse import urlparse
 
-from .backends.redis import RedisBackend
+from .backends.base import BaseBackend
 from .event import Event
 
 
 class Unsubscribed(Exception):
+    pass
+
+
+class UnknownBackend(Exception):
     pass
 
 
@@ -69,12 +65,26 @@ class Rhubarb:
         :param url: URL for the backend service
         :type url: str
         """
+        backend_cls = self.get_backend(url)
         self.logger = logging.getLogger()
-        self._backend: RedisBackend = RedisBackend(
-            url
-        )  # This can be updated to allow for different backendsUpdate this to allow for different backends
+        self._backend: BaseBackend = backend_cls(url)
+
         self._subscribers: dict[str, set[asyncio.Queue[Union[Event, None]]]] = {}
         self._lock = asyncio.Lock()
+
+    def get_backend(self, url: str) -> BaseBackend:
+        parsed_url = urlparse(url)
+
+        if parsed_url.scheme == "redis":
+            from rhubarb.backends.redis import RedisBackend
+
+            return RedisBackend
+        elif parsed_url.scheme == "kafka":
+            from rhubarb.backends.kafka import KafkaBackend
+
+            return KafkaBackend
+        else:
+            raise UnknownBackend(f'"{parsed_url.scheme}" is not a supported backend!')
 
     async def _reader(self) -> None:
         """Reads the backend queue and passes events to Subscribers"""

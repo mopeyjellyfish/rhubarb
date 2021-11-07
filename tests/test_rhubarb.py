@@ -4,8 +4,8 @@ from contextlib import suppress
 
 from pytest import fixture, mark, raises
 
+from rhubarb import Rhubarb, UnknownBackend, Unsubscribed
 from rhubarb.backends.base import BaseBackend
-from rhubarb.queue import Rhubarb, Unsubscribed
 
 
 @fixture
@@ -28,6 +28,11 @@ class TestRhubarb:
             assert hasattr(queue, "disconnect")
             assert hasattr(queue, "publish")
             assert isinstance(queue._backend, BaseBackend)
+
+    async def test_unknown_backend(self):
+        with raises(UnknownBackend):
+            async with Rhubarb("xyz://") as _:
+                pass
 
     async def test_subscribe_and_publish(self, queue, subscriber):
         await queue.publish("test-channel", "test-data")

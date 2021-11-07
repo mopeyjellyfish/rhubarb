@@ -4,9 +4,10 @@
 import sys
 from importlib import metadata as importlib_metadata
 
-from .queue import Rhubarb
+from ._core import Rhubarb, UnknownBackend, Unsubscribed
+from .event import Event
 
-__all__ = ["Rhubarb"]
+__all__ = ["Rhubarb", "Event", "Unsubscribed", "UnknownBackend"]
 
 
 def get_version() -> str:

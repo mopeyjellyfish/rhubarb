@@ -3,15 +3,25 @@ from typing import Generator
 import asyncio
 from asyncio.events import AbstractEventLoop
 
-import pytest
+from pytest import fixture
 
 
-@pytest.fixture
-def URL():
+@fixture
+def REDIS_URL():
     return "redis://localhost:6379/0"
 
 
-@pytest.fixture(scope="session", autouse=True)
+@fixture
+def KAFKA_URL():
+    return "kafka://localhost:9092"
+
+
+@fixture(params=["redis://localhost:6379/0", "kafka://localhost:9092"])
+def URL(request):
+    return request.param
+
+
+@fixture(scope="session", autouse=True)
 def event_loop() -> Generator[AbstractEventLoop, None, None]:
     """Return the running event loop.
 

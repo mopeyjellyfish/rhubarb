@@ -11,8 +11,8 @@ from rhubarb.event import Event
 
 
 @fixture
-async def redis(URL: str) -> AsyncGenerator[Event, None]:
-    redis_backend = RedisBackend(url=URL)
+async def redis(REDIS_URL: str) -> AsyncGenerator[Event, None]:
+    redis_backend = RedisBackend(url=REDIS_URL)
     await redis_backend.connect()
     yield redis_backend
     await redis_backend.disconnect()
@@ -20,17 +20,17 @@ async def redis(URL: str) -> AsyncGenerator[Event, None]:
 
 @mark.asyncio
 class TestRedisBackend:
-    def test_redis_queue(self, redis, URL):
+    def test_redis_queue(self, redis, REDIS_URL):
         assert hasattr(redis, "connect")
         assert hasattr(redis, "disconnect")
         assert hasattr(redis, "subscribe")
         assert hasattr(redis, "unsubscribe")
         assert hasattr(redis, "publish")
         assert hasattr(redis, "next_event")
-        assert redis.url == URL
+        assert redis.url == REDIS_URL
 
-    async def test_redis_connect_disconnect(self, URL):
-        redis = RedisBackend(url=URL)
+    async def test_redis_connect_disconnect(self, REDIS_URL):
+        redis = RedisBackend(url=REDIS_URL)
         await redis.connect()
         assert redis._redis
         await redis.disconnect()
@@ -44,7 +44,6 @@ class TestRedisBackend:
 
     async def test_redis_subscribe(self, redis):
         await redis.subscribe("test-channel")
-        pass
 
     async def test_redis_unsubscribe(self, redis):
         await redis.subscribe("test-channel")
