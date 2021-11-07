@@ -14,6 +14,15 @@ jobs:
           image: redis:alpine
           ports:
           - 6379:6379
+        postgres:
+          image: postgres:14
+          env:
+            POSTGRES_DB: rhubarb
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_HOST_AUTH_METHOD: trust
+            POSTGRES_USER: postgres
+          ports:
+          - 5432:5432
         zookeeper:
           image: confluentinc/cp-zookeeper
           ports:

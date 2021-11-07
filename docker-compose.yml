@@ -23,6 +23,15 @@ services:
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT_HOST://localhost:29092,PLAINTEXT://localhost:9092
       - KAFKA_BROKER_ID=1
       - ALLOW_PLAINTEXT_LISTENER=ye
+  postgres:
+    image: "postgres:14"
+    environment:
+      - POSTGRES_DB=rhubarb
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_USER=postgres
+    ports:
+      - 5432:5432
   redis:
     image: "redis:alpine"
     ports:

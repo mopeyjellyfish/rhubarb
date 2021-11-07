@@ -21,7 +21,19 @@ def MEMORY_URL():
     return "memory://"
 
 
-@fixture(params=["redis://localhost:6379/0", "kafka://localhost:9092", "memory://"])
+@fixture
+def POSTGRES_URL():
+    return "postgres://postgres:postgres@localhost:5432/rhubarb"
+
+
+@fixture(
+    params=[
+        "redis://localhost:6379/0",
+        "kafka://localhost:9092",
+        "memory://",
+        "postgres://postgres:postgres@localhost:5432/rhubarb",
+    ]
+)
 def URL(request):
     return request.param
 

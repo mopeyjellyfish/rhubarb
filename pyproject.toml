@@ -36,6 +36,7 @@ classifiers = [  #! Update me
 python = "^3.9"
 aioredis = "^2.0.0"
 aiokafka = "^0.7.2"
+asyncpg = "^0.24.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

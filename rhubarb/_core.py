@@ -83,6 +83,10 @@ class Rhubarb:
             from rhubarb.backends.kafka import KafkaBackend
 
             return KafkaBackend
+        elif parsed_url.scheme == "postgres":
+            from rhubarb.backends.postgres import AsyncPgBackend
+
+            return AsyncPgBackend
         elif parsed_url.scheme == "memory":
             from rhubarb.backends.memory import MemoryBackend
 
