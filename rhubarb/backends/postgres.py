@@ -1,13 +1,13 @@
-from typing import Any
+from typing import Any, Optional, Union
 
 import asyncio
 import logging
 
 import asyncpg
 
-from rhubarb import Event
 from rhubarb.backends.base import BaseBackend
 from rhubarb.backends.exceptions import UnsubscribeError
+from rhubarb.event import Event
 
 
 class AsyncPgBackend(BaseBackend):
@@ -24,7 +24,7 @@ class AsyncPgBackend(BaseBackend):
         """Connect to the postgres instance using ``self.url``"""
         self.logger.info("Connecting to %s", self.url)
         self._connection = await asyncpg.connect(self.url)
-        self._listen_queue: asyncio.Queue = asyncio.Queue()
+        self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
         self._channels: set[str] = set()
         self.logger.info("Connected to %s", self.url)
 
@@ -83,6 +83,6 @@ class AsyncPgBackend(BaseBackend):
         event = Event(channel=channel, message=payload)
         self._listen_queue.put_nowait(event)
 
-    async def next_event(self) -> Event:
+    async def next_event(self) -> Optional[Event]:
         """Get the next event from the queue"""
         return await self._listen_queue.get()

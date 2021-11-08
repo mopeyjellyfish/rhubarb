@@ -1,11 +1,11 @@
-from typing import Any, Set
+from typing import Any, Optional, Union
 
 import asyncio
 import logging
 
-from rhubarb import Event
 from rhubarb.backends.base import BaseBackend
 from rhubarb.backends.exceptions import UnsubscribeError
+from rhubarb.event import Event
 
 
 class MemoryBackend(BaseBackend):
@@ -18,7 +18,7 @@ class MemoryBackend(BaseBackend):
     async def connect(self) -> None:
         """Connect simply creates the consumer queue"""
         self.logger.info("Creating queue...")
-        self._consumer: asyncio.Queue = asyncio.Queue()
+        self._consumer: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
         self.logger.info("Created queue!")
 
     async def disconnect(self) -> None:
@@ -46,10 +46,10 @@ class MemoryBackend(BaseBackend):
         event = Event(channel=channel, message=message)
         await self._consumer.put(event)
 
-    async def next_event(self) -> Event:
+    async def next_event(self) -> Optional[Event]:
         """Get the next event from the consumer queue"""
         self.logger.debug("Getting next event...")
         while True:
-            event = await self._consumer.get()
-            if event.channel in self._channels:
+            event: Optional[Event] = await self._consumer.get()
+            if event and event.channel in self._channels:
                 return event

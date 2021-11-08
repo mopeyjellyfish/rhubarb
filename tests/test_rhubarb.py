@@ -4,7 +4,7 @@ from contextlib import suppress
 
 from pytest import fixture, mark, raises
 
-from rhubarb import Rhubarb, UnknownBackend, Unsubscribed
+from rhubarb._core import Rhubarb, UnknownBackend, Unsubscribed
 from rhubarb.backends.base import BaseBackend
 
 

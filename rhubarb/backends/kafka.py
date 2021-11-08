@@ -1,4 +1,4 @@
-from typing import Any, List, Set, Union
+from typing import Any, List, Optional, Set, Union
 
 import asyncio
 import logging
@@ -7,9 +7,9 @@ from urllib.parse import urlparse
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 
-from rhubarb import Event
 from rhubarb.backends.base import BaseBackend
 from rhubarb.backends.exceptions import UnsubscribeError
+from rhubarb.event import Event
 
 
 class KafkaBackend(BaseBackend):
@@ -22,7 +22,6 @@ class KafkaBackend(BaseBackend):
         self._servers: list[str] = [urlparse(url).netloc]
         self._channels: set[str] = set()
         self._lock = asyncio.Lock()
-        self._consumer_reader_task = None
         self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
         self.logger = logging.getLogger("RedisBackend")
 
@@ -46,7 +45,9 @@ class KafkaBackend(BaseBackend):
             *self._channels, bootstrap_servers=self._servers
         )
         await self._consumer.start()
-        self._consumer_reader_task = asyncio.create_task(self._reader())
+        self._consumer_reader_task: asyncio.Task[None] = asyncio.create_task(
+            self._reader()
+        )
 
     async def _stop_consumer(self):
         """Stops the consumer task and the AIOKafkaConsumer object"""
@@ -106,7 +107,7 @@ class KafkaBackend(BaseBackend):
             event = Event(channel=message.topic, message=message.value.decode("utf8"))
             self._listen_queue.put_nowait(event)
 
-    async def next_event(self) -> Event:
+    async def next_event(self) -> Optional[Event]:
         """Return the next event from the queue that was read from all channels"""
         self.logger.debug("Getting next event from kafka...")
         return await self._listen_queue.get()

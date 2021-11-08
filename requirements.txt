@@ -1,3 +1,6 @@
+aiokafka==0.7.2
 aioredis==2.0.0; python_version >= "3.6"
 async-timeout==4.0.0; python_version >= "3.6"
+asyncpg==0.24.0; python_full_version >= "3.6.0"
+kafka-python==2.0.2
 typing-extensions==3.10.0.2; python_version >= "3.6"

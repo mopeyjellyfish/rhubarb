@@ -11,7 +11,7 @@ from rhubarb.event import Event
 
 
 @fixture
-async def memory(MEMORY_URL) -> AsyncGenerator[Event, None]:
+async def memory(MEMORY_URL: str) -> AsyncGenerator[Event, None]:
     memory_backend = MemoryBackend(MEMORY_URL)
     await memory_backend.connect()
     yield memory_backend
