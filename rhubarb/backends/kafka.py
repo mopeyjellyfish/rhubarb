@@ -23,6 +23,7 @@ class KafkaBackend(BaseBackend):
         self._channels: set[str] = set()
         self._lock = asyncio.Lock()
         self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
+        self._consumer_reader_task = None
         self.logger = logging.getLogger("RedisBackend")
 
     async def connect(self) -> None:
@@ -45,14 +46,14 @@ class KafkaBackend(BaseBackend):
             *self._channels, bootstrap_servers=self._servers
         )
         await self._consumer.start()
-        self._consumer_reader_task: asyncio.Task[None] = asyncio.create_task(
+        self._consumer_reader_task: asyncio.Task[None] = asyncio.create_task(  # type: ignore
             self._reader()
         )
 
     async def _stop_consumer(self):
         """Stops the consumer task and the AIOKafkaConsumer object"""
         if self._consumer_reader_task:
-            self._consumer_reader_task.cancel()
+            self._consumer_reader_task.cancel()  # type: ignore
             with suppress(asyncio.exceptions.CancelledError):
                 await self._consumer_reader_task
             await self._consumer.stop()

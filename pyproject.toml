@@ -38,6 +38,11 @@ aioredis = "^2.0.0"
 aiokafka = "^0.7.2"
 asyncpg = "^0.24.0"
 
+[tool.poetry.extras]
+redis = ["aioredis"]
+kafka = ["aiokafka"]
+postgres = ["asyncpg"]
+
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"
 black = {version = "^21.7b0", allow-prereleases = true}
@@ -55,6 +60,9 @@ pytest-asyncio = "^0.16.0"
 Sphinx = "^4.2.0"
 sphinx-rtd-theme = "^1.0.0"
 pytest-cov = "^3.0.0"
+asyncpg = "^0.24.0"
+aioredis = "^2.0.0"
+aiokafka = "^0.7.2"
 
 [tool.black]
 # https://github.com/psf/black
