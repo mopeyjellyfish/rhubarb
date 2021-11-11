@@ -13,21 +13,54 @@
 [![Semantic Versions](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--versions-e10079.svg)](https://github.com/mopeyjellyfish/rhubarb/releases)
 [![License](https://img.shields.io/github/license/mopeyjellyfish/rhubarb)](https://github.com/mopeyjellyfish/rhubarb/blob/master/LICENSE)
 
-Rhubarb is a library that simplifies realtime streaming of events for a number of backends in a single API
+Rhubarb is a library that simplifies realtime streaming of events for a number of backends in to a single API. Currently supports [`Postgres`](https://github.com/MagicStack/asyncpg), [`kafka`](https://github.com/aio-libs/aiokafka), [`redis`](https://github.com/aio-libs/aioredis-py) as well as an internal memory backend useful for testing.
 
 </div>
 
 ## Installation
 
+#### Redis
+
 ```bash
-pip install -U rhubarb-py
+pip install -U rhubarb-py[redis]
 ```
 
 or install with `Poetry`
 
 ```bash
-poetry add rhubarb-py
+poetry add rhubarb-py[redis]
 ```
+
+#### Kafka
+
+```bash
+pip install -U rhubarb-py[kafka]
+```
+
+or install with `Poetry`
+
+```bash
+poetry add rhubarb-py[kafka]
+```
+
+#### Postgres
+
+```bash
+pip install -U rhubarb-py[postgres]
+```
+
+or install with `Poetry`
+
+```bash
+poetry add rhubarb-py[postgres]
+```
+
+## Backends
+
+- `Rhubarb("redis://localhost:6379/0")`
+- `Rhubarb("kafka://localhost:9092")`
+- `Rhubarb("postgres://postgres:postgres@localhost:5432/rhubarb")`
+- `Rhubarb("memory://")`
 
 ## Example
 
