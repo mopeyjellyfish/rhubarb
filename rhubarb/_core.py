@@ -91,6 +91,10 @@ class Rhubarb:
             from rhubarb.backends.memory import MemoryBackend
 
             return MemoryBackend
+        elif parsed_url.scheme == "amqp":
+            from rhubarb.backends.rabbitmq import RabbitMQBackend
+
+            return RabbitMQBackend
         else:
             raise UnknownBackend(f'"{parsed_url.scheme}" is not a supported backend!')
 

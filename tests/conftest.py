@@ -26,12 +26,18 @@ def POSTGRES_URL():
     return "postgres://postgres:postgres@localhost:5432/rhubarb"
 
 
+@fixture
+def RABBIT_MQ_URL():
+    return "amqp://guest:guest@localhost/"
+
+
 @fixture(
     params=[
         "redis://localhost:6379/0",
         "kafka://localhost:9092",
         "memory://",
         "postgres://postgres:postgres@localhost:5432/rhubarb",
+        "amqp://guest:guest@localhost/",
     ]
 )
 def URL(request):

@@ -32,6 +32,10 @@ services:
       - POSTGRES_USER=postgres
     ports:
       - 5432:5432
+  rabbitmq:
+    image: "rabbitmq:latest"
+    ports:
+      - 5672:5672
   redis:
     image: "redis:alpine"
     ports:
