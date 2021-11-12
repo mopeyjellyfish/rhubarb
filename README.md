@@ -13,59 +13,18 @@
 [![Semantic Versions](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--versions-e10079.svg)](https://github.com/mopeyjellyfish/rhubarb/releases)
 [![License](https://img.shields.io/github/license/mopeyjellyfish/rhubarb)](https://github.com/mopeyjellyfish/rhubarb/blob/master/LICENSE)
 
-Rhubarb is a library that simplifies realtime streaming of events for a number of backends in to a single API. Currently supports [`Postgres`](https://github.com/MagicStack/asyncpg), [`kafka`](https://github.com/aio-libs/aiokafka), [`RabbitMQ`](https://github.com/mosquito/aio-pika) [`redis`](https://github.com/aio-libs/aioredis-py) as well as an internal memory backend useful for testing.
+Rhubarb is a library that simplifies realtime streaming of events for a number of backends in to a single API. Currently supports [`Postgres`](https://github.com/MagicStack/asyncpg), [`kafka`](https://github.com/aio-libs/aiokafka), [`RabbitMQ`](https://github.com/mosquito/aio-pika), [`redis`](https://github.com/aio-libs/aioredis-py) as well as an internal memory backend useful for testing.
 
 </div>
 
 ## Installation
 
-### Redis
+There are a number of backends that can be used with Rhubarb:
 
-```bash
-pip install -U rhubarb-py[redis]
-```
-
-or install with `Poetry`
-
-```bash
-poetry add rhubarb-py[redis]
-```
-
-### Kafka
-
-```bash
-pip install -U rhubarb-py[kafka]
-```
-
-or install with `Poetry`
-
-```bash
-poetry add rhubarb-py[kafka]
-```
-
-### Postgres
-
-```bash
-pip install -U rhubarb-py[postgres]
-```
-
-or install with `Poetry`
-
-```bash
-poetry add rhubarb-py[postgres]
-```
-
-### RabbitMQ
-
-```bash
-pip install -U rhubarb-py[rabbitmq]
-```
-
-or install with `Poetry`
-
-```bash
-poetry add rhubarb-py[rabbitmq]
-```
+| Kafka | Postgres | Redis | RabbitMQ |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |--------------------------------------------------------------------------------- |
+| <p align="center"><img src="./README_assets/kafka.png" width="60" height="100"/></p>    | <p align="center"><img src="./README_assets/postgres.png" width="100" height="100" /></p> | <p align="center"><img src="./README_assets/redis.png" width="100" height="80"/></p> | <p align="center"><img src="./README_assets/rabbitmq.jpg" width="100" height="100" /></p> |
+| `pip install rhubarb-py[kafka]` | `pip install rhubarb-py[postgres]` | `pip install rhubarb-py[redis]` | `pip install rhubarb-py[rabbitmq]` |
 
 ## Backends
 
@@ -163,8 +122,6 @@ app = Starlette(
     on_shutdown=[events.disconnect],
 )
 ```
-
-
 
 ## 🛡 License
 
