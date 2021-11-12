@@ -80,7 +80,7 @@ wrapt = ">=1.11,<1.14"
 
 [[package]]
 name = "async-timeout"
-version = "4.0.0"
+version = "4.0.1"
 description = "Timeout context manager for asyncio programs"
 category = "main"
 optional = false
@@ -1007,8 +1007,8 @@ astroid = [
     {file = "astroid-2.8.4.tar.gz", hash = "sha256:1e83a69fd51b013ebf5912d26b9338d6643a55fec2f20c787792680610eed4a2"},
 ]
 async-timeout = [
-    {file = "async-timeout-4.0.0.tar.gz", hash = "sha256:7d87a4e8adba8ededb52e579ce6bc8276985888913620c935094c2276fd83382"},
-    {file = "async_timeout-4.0.0-py3-none-any.whl", hash = "sha256:f3303dddf6cafa748a92747ab6c2ecf60e0aeca769aee4c151adfce243a05d9b"},
+    {file = "async-timeout-4.0.1.tar.gz", hash = "sha256:b930cb161a39042f9222f6efb7301399c87eeab394727ec5437924a36d6eef51"},
+    {file = "async_timeout-4.0.1-py3-none-any.whl", hash = "sha256:a22c0b311af23337eb05fcf05a8b51c3ea53729d46fb5460af62bee033cec690"},
 ]
 asyncpg = [
     {file = "asyncpg-0.24.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:c4fc0205fe4ddd5aeb3dfdc0f7bafd43411181e1f5650189608e5971cceacff1"},
