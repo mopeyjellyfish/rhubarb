@@ -44,6 +44,7 @@ class TestRedisBackend:
 
     async def test_redis_subscribe(self, redis):
         await redis.subscribe("test-channel")
+        await asyncio.sleep(0)
 
     async def test_redis_unsubscribe(self, redis):
         await redis.subscribe("test-channel")
@@ -64,15 +65,17 @@ class TestRedisBackend:
     async def test_redis_publish(self, redis):
         await redis.subscribe("test-channel")
         await redis.subscribe("test-channel-a")
+        await redis.subscribe("test-channel-b")
+        await asyncio.sleep(0)
         await redis.publish("test-channel", "test data")
         event = await redis.next_event()
         assert event.channel == "test-channel"
         assert event.message == "test data"
-        await redis.publish("test-channel", "test data A")
+        await redis.publish("test-channel", "Another messsage")
         event = await redis.next_event()
         assert event.channel == "test-channel"
-        assert event.message == "test data A"
-        await redis.publish("test-channel-a", "test data B")
+        assert event.message == "Another messsage"
+        await redis.publish("test-channel-a", "Just a message")
         event = await redis.next_event()
         assert event.channel == "test-channel-a"
-        assert event.message == "test data B"
+        assert event.message == "Just a message"

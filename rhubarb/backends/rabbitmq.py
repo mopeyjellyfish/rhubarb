@@ -29,9 +29,7 @@ class RabbitMQBackend(BaseBackend):
     async def connect(self) -> None:
         """Connects the producer to kafka backend"""
         self.logger.info("Connecting to %s", self._url)
-        self._connection: aio_pika.ConnectionType = await aio_pika.connect_robust(
-            self._url
-        )
+        self._connection: Any = await aio_pika.connect_robust(self._url)
         self._producer = await self._connection.channel()
         self.logger.info("Connected to %s", self._url)
 

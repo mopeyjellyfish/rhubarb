@@ -89,6 +89,7 @@ class TestRhubarb:
     async def test_subscribers_multiple_channel_publish(self, queue):
         async with queue.subscribe("test-channel-1") as first_subscriber:
             async with queue.subscribe("test-channel-2") as second_subscriber:
+                await asyncio.sleep(0)
                 assert first_subscriber is not second_subscriber
                 assert first_subscriber != second_subscriber
                 assert "test-channel-1" in queue._subscribers
@@ -107,6 +108,7 @@ class TestRhubarb:
 
     async def test_iterate_subscriber_close_queue(self, queue):
         async with queue.subscribe("test-channel-1") as subscriber:
+            await asyncio.sleep(0)
             await queue.publish("test-channel-1", "test 1")
             await queue.publish("test-channel-1", "test 2")
             assert await subscriber.get()

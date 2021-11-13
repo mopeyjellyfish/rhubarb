@@ -1,9 +1,10 @@
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Set, Union
 
 import asyncio
 import logging
 from asyncio import exceptions
 from collections import namedtuple
+from contextlib import suppress
 from logging import Logger
 
 import aioredis
@@ -12,10 +13,6 @@ import async_timeout
 from rhubarb.backends.base import BaseBackend
 from rhubarb.backends.exceptions import UnsubscribeError
 from rhubarb.event import Event
-
-STOPWORD = "STOP"
-
-Subscription = namedtuple("Subscription", ["pubsub", "task"])
 
 
 class RedisBackend(BaseBackend):
@@ -26,7 +23,8 @@ class RedisBackend(BaseBackend):
         :type url: str
         """
         self.url: str = url
-        self._channels: dict[str, Subscription] = {}
+        self._channels: dict[str, asyncio.Task[None]] = {}
+        self._unsubscribed: set[str] = set()
         self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
         self.logger: Logger = logging.getLogger(__name__)
 
@@ -34,54 +32,19 @@ class RedisBackend(BaseBackend):
         """Connection to the configured Redis URL using ``aioredis``.
         Execute a `ping` to check if the connection is valid.
         """
-        self.logger.info("Connecting to %s", self.url)
+        self.logger.info("Connecting to '%s'", self.url)
         self._redis = aioredis.from_url(
             self.url, encoding="utf-8", decode_responses=True
         )
         await self._redis.ping()  # causes aioredis to connect immediately
-        self.logger.info("Connected to %s", self.url)
+        self.logger.info("Connected to '%s'", self.url)
 
     async def disconnect(self) -> None:
         """Gracefully close the queue and end the tasks, the redis connection gracefully closes itself during garbage collection."""
         self.logger.info("Disconnecting from %s", self.url)
-        for channel, subscription in self._channels.items():
-            await self.publish(channel, STOPWORD)
-            await subscription.pubsub.unsubscribe(channel)
-            subscription.task.cancel()
-            await subscription.task
-        self._listen_queue.put_nowait(None)
+        for channel in list(self._channels.keys()):
+            await self.unsubscribe(channel)
         self.logger.info("Disconnected from %s", self.url)
-
-    async def _reader(self, channel: aioredis.client.PubSub) -> None:
-        """Read data from the passed channel object and put events into a queue to be read by the caller.
-
-        :param channel: The channel subscribed to
-        :type channel: aioredis.client.PubSub
-        """
-        while True:
-            try:
-                async with async_timeout.timeout(1):
-                    if (
-                        message := await channel.get_message(
-                            ignore_subscribe_messages=True, timeout=1.0
-                        )
-                    ) is not None:
-                        self.logger.debug(
-                            "Read message %s from channel: %s",
-                            message["channel"],
-                            message["data"],
-                        )
-                        if message["data"] == STOPWORD:
-                            self.logger.info("Reader received stop message")
-                            break
-                        event = Event(
-                            channel=message["channel"], message=message["data"]
-                        )
-                        self._listen_queue.put_nowait(event)
-            except asyncio.CancelledError:
-                break
-            except asyncio.TimeoutError:
-                pass
 
     async def subscribe(self, channel: str) -> None:
         """Subscribe to the passed channel
@@ -89,14 +52,12 @@ class RedisBackend(BaseBackend):
         :param channel: channel name to subscribe to
         :type channel: str
         """
-        self.logger.info("Subscribing to %s", channel)
+        self.logger.info("Subscribing to '%s'", channel)
         if channel in self._channels:
-            self.logger.warning("Already subscribed to %s", channel)
+            self.logger.warning("Already subscribed to '%s'", channel)
         else:
-            _pubsub = self._redis.pubsub()
-            await _pubsub.subscribe(channel)
-            task = asyncio.create_task(self._reader(_pubsub))
-            self._channels[channel] = Subscription(_pubsub, task)
+            self._channels[channel] = asyncio.create_task(self._reader(channel))
+        self.logger.info("Subscribed to '%s'", channel)
 
     async def unsubscribe(self, channel: str) -> None:
         """Unsubscribe from the passed channel
@@ -105,27 +66,71 @@ class RedisBackend(BaseBackend):
         :type channel: str
         :raises UnsubscribeError: When unsubscribed from a channel
         """
-        self.logger.info("Unsubscribing from %s", channel)
+        self.logger.info("Unsubscribing from '%s'", channel)
         if (subscription := self._channels.get(channel)) is not None:
-            await self.publish(channel, STOPWORD)
-            await subscription.pubsub.unsubscribe(channel)
-            subscription.task.cancel()
-            await subscription.task
+            self.logger.debug("Cancelling task for '%s' channel", channel)
+            self.logger.debug("Task %s", subscription)
+            subscription.cancel()
+            with suppress(asyncio.CancelledError):
+                self.logger.debug("Waiting for '%s' reader task to cancel...", channel)
+                self._unsubscribed.add(channel)  # signal for the reader to close
+                await subscription  # wait for the reader to close
+                self._unsubscribed.remove(channel)  # clean up
             del self._channels[channel]
         else:
-            self.logger.warning("Unknown channel %s", channel)
+            self.logger.warning("Unknown channel '%s'", channel)
             raise UnsubscribeError(f"Unknown channel {channel}")
 
     async def publish(self, channel: str, message: Any) -> None:
-        """Using the configured redis connection pool a publish a message to the provided channel
+        """Using the configured redis connection to publish a message to the provided channel
 
         :param channel: Channel name to use to publish the message to
         :type channel: str
         :param message: Data that is to be published to the channel
         :type message: Any
         """
-        self.logger.debug("Publishing message %s to channel %s", message, channel)
-        await self._redis.publish(channel, message)
+        fields = {"message": message}
+        self.logger.debug("Publishing message '%s' to channel '%s'", message, channel)
+        await self._redis.xadd(channel, fields)
+
+    async def _reader(self, channel: str) -> None:
+        """Read data from the passed channel object and put events into a queue to be read by the caller.
+
+        :param channel: The channel subscribed to
+        :type channel: str
+        """
+        self.logger.debug("Reader starting for '%s' channel", channel)
+        streams: dict[str, int] = {channel: 0}
+        results = await self._redis.xrevrange(
+            channel, count=1
+        )  # read the last events from the channel
+        for message_id, values in reversed(results):
+            streams[channel] = message_id
+
+        self.logger.debug(
+            "Latest stream id '%s' for '%s' channel", streams[channel], channel
+        )
+
+        while True:
+            response = await self._redis.xread(streams, block=100, count=1)
+            self.logger.debug(
+                "Read %d messages for channel '%s'", len(response), channel
+            )
+            for stream_name, messages in response:
+                for message_id, values in messages:
+                    self.logger.debug(
+                        "Read message %s from channel '%s', Updating latest stream id '%s'",
+                        values["message"],
+                        stream_name,
+                        message_id,
+                    )
+                    streams[stream_name] = message_id
+                    event = Event(channel=stream_name, message=values["message"])
+                    self._listen_queue.put_nowait(event)
+            if (
+                channel in self._unsubscribed
+            ):  # check if the channel has unsubscribed and break out
+                break
 
     async def next_event(self) -> Union[Event, None]:
         """Return the next event from the queue that was read from all channels"""

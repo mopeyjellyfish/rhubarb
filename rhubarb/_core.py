@@ -62,8 +62,8 @@ class Rhubarb:
     def __init__(
         self,
         url: str,
-        serializer: Optional[Callable] = None,
-        deserializer: Optional[Callable] = None,
+        serializer: Optional[Callable[[Any], str]] = None,
+        deserializer: Optional[Callable[[str], Any]] = None,
     ):
         """Constructor for the event bus that configures the event bus
         `_backend`` is intended to be replaced with different backends where required.
@@ -74,8 +74,8 @@ class Rhubarb:
         backend_cls = self.get_backend(url)
         self.logger: Logger = logging.getLogger(__name__)
         self._backend: BaseBackend = backend_cls(url)
-        self._serializer: Optional[Callable] = serializer
-        self._deserializer: Optional[Callable] = deserializer
+        self._serializer: Optional[Callable[[Any], str]] = serializer
+        self._deserializer: Optional[Callable[[str], Any]] = deserializer
         self._subscribers: dict[str, set[asyncio.Queue[Union[Event, None]]]] = {}
         self._lock = asyncio.Lock()
 
