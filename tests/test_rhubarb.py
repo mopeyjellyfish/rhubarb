@@ -23,6 +23,18 @@ async def subscriber(queue):
         yield subscriber
 
 
+@fixture
+async def queue_json(URL):
+    async with Rhubarb(URL, serializer=json.dumps, deserializer=json.loads) as events:
+        yield events
+
+
+@fixture
+async def subscriber_json(queue_json):
+    async with queue_json.subscribe("test-channel") as subscriber:
+        yield subscriber
+
+
 @mark.asyncio
 class TestRhubarb:
     async def test_queue_interface(self, URL):
@@ -152,19 +164,9 @@ class TestRhubarb:
         await queue.disconnect()
         assert queue._reader_task.done()
 
-    async def test_publish_json(self, queue, subscriber):
+    async def test_publish_subscribe_json(self, queue_json, subscriber_json):
         test_message = {"test_key": "test_value"}
-        await queue.publish_json("test-channel", test_message)
-        event = await subscriber.get()
+        await queue_json.publish("test-channel", test_message)
+        event = await subscriber_json.get()
         assert event.channel == "test-channel"
-        assert event.message == json.dumps(test_message)
-
-    async def test_subscribe_json(self, queue):
-        test_message = {"test_key": "test_value"}
-        async with queue.subscribe(
-            "test-channel", message_loader=json.loads
-        ) as subscriber:
-            await queue.publish_json("test-channel", test_message)
-            event = await subscriber.get()
-            assert event.channel == "test-channel"
-            assert event.message == test_message
+        assert event.message == test_message

@@ -39,14 +39,14 @@ class Rhubarb:
     .. code-block:: python
 
         async with Rhubarb(EVENT_QUEUE_URL) as events:
-            await events.publish(channel="INPUT_ROOM_1", message=json.dumps(data))
+            await events.publish(channel="CHATROOM", message=json.dumps(data))
 
     It is also possible to parse messages with your own callable:
 
     .. code-block:: python
 
-        async with Rhubarb(EVENT_QUEUE_URL) as events:
-            async with events.subscribe(channel="PUBLIC_STATE_ROOM_1", message_loader=json.loads) as subscriber:
+        async with Rhubarb(EVENT_QUEUE_URL, serializer=json.loads, deserializer=json.dumps) as events:
+            async with events.subscribe(channel="CHATROOM") as subscriber:
                 async for event in subscriber:
                     await websocket.send_json(event.message)
 
@@ -54,12 +54,17 @@ class Rhubarb:
 
     .. code-block:: python
 
-        async with Rhubarb(EVENT_QUEUE_URL) as events:
-            await events.publish_json(channel="INPUT_ROOM_1", message=data)
+        async with Rhubarb(EVENT_QUEUE_URL, serializer=json.loads, deserializer=json.dumps) as events:
+            await events.publish(channel="CHATROOM", message=data)
 
     """
 
-    def __init__(self, url: str):
+    def __init__(
+        self,
+        url: str,
+        serializer: Optional[Callable] = None,
+        deserializer: Optional[Callable] = None,
+    ):
         """Constructor for the event bus that configures the event bus
         `_backend`` is intended to be replaced with different backends where required.
 
@@ -69,7 +74,8 @@ class Rhubarb:
         backend_cls = self.get_backend(url)
         self.logger: Logger = logging.getLogger(__name__)
         self._backend: BaseBackend = backend_cls(url)
-
+        self._serializer: Optional[Callable] = serializer
+        self._deserializer: Optional[Callable] = deserializer
         self._subscribers: dict[str, set[asyncio.Queue[Union[Event, None]]]] = {}
         self._lock = asyncio.Lock()
 
@@ -139,7 +145,7 @@ class Rhubarb:
         """Disconnect the backend when exiting the context manager"""
         await self.disconnect()
 
-    async def publish(self, channel: str, message: str) -> None:
+    async def publish(self, channel: str, message: Any) -> None:
         """Publishes a message to the channel provided
 
         :param channel: channel name
@@ -147,19 +153,14 @@ class Rhubarb:
         :param message: message to publish to the provided channel name
         :type message: str
         """
-        self.logger.debug("Publishing to %s message: %s", channel, message)
-        await self._backend.publish(channel, message)
+        _message = None
+        if self._serializer:  # if a serializer has been provided then call
+            _message = self._serializer(message)
+        else:
+            _message = message
 
-    async def publish_json(self, channel: str, obj: Any) -> None:
-        """Serializes the message into a JSON string and publishes.
-
-        :param channel: channel name
-        :type channel: str
-        :param obj: message to publish to the provided channel name
-        :type obj: any
-        """
-        message = json.dumps(obj)
-        await self.publish(channel, message)
+        self.logger.debug("Publishing to %s message: %s", channel, _message)
+        await self._backend.publish(channel, _message)
 
     async def _subscribe(
         self, channel: str, queue: asyncio.Queue[Union[Event, None]]
@@ -207,9 +208,7 @@ class Rhubarb:
                 await self._backend.unsubscribe(channel)
 
     @asynccontextmanager
-    async def subscribe(
-        self, channel: str, message_loader: Optional[Callable[[str], Any]] = None
-    ) -> AsyncIterator["Subscriber"]:
+    async def subscribe(self, channel: str) -> AsyncIterator["Subscriber"]:
         """A context manager that will yield a subscriber
 
         :param channel: channel name to subscribe to
@@ -219,7 +218,7 @@ class Rhubarb:
 
         try:
             await self._subscribe(channel, queue)
-            yield Subscriber(queue, message_loader)
+            yield Subscriber(queue, self._deserializer)
             await self._unsubscribe(channel, queue)
         finally:
             self.logger.debug("Closing queue for %s channel", channel)
@@ -230,7 +229,7 @@ class Subscriber:
     def __init__(
         self,
         queue: asyncio.Queue[Union[Event, None]],
-        loader: Optional[Callable[[str], Any]] = None,
+        deserializer: Optional[Callable[[str], Any]] = None,
     ) -> None:
         """Wraps an ``asyncio.Queue`` to allow the caller to asynchronously iterate over the queue
 
@@ -238,7 +237,7 @@ class Subscriber:
         :type queue: asyncio.Queue
         """
         self._queue = queue
-        self.loader = loader
+        self._deserializer = deserializer
 
     async def __aiter__(self) -> Optional[AsyncGenerator[Event, None]]:
         """Async iterable allows for iterating over subscribed events"""
@@ -258,7 +257,7 @@ class Subscriber:
         if item is None:
             raise Unsubscribed()
 
-        if self.loader:
-            return Event(channel=item.channel, message=self.loader(item.message))
+        if self._deserializer:
+            return Event(channel=item.channel, message=self._deserializer(item.message))
 
         return item
