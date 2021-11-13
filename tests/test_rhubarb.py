@@ -3,6 +3,8 @@ import json
 from contextlib import suppress
 from logging import Logger
 
+from hypothesis import given
+from hypothesis import strategies as st
 from pytest import fixture, mark, raises
 
 from rhubarb._core import Rhubarb, UnknownBackend, Unsubscribed
@@ -38,11 +40,16 @@ class TestRhubarb:
             async with Rhubarb("xyz://") as _:
                 pass
 
-    async def test_subscribe_and_publish(self, queue, subscriber):
-        await queue.publish("test-channel", "test-data")
+    @given(
+        message=st.text(
+            alphabet=st.characters(blacklist_categories=("Cs", "Cc")),
+        )
+    )
+    async def test_subscribe_and_publish(self, queue, subscriber, message):
+        await queue.publish("test-channel", message)
         event = await subscriber.get()
         assert event.channel == "test-channel"
-        assert event.message == "test-data"
+        assert event.message == message
 
     async def test_multiple_subscribers(self, queue):
         async with queue.subscribe("test-channel") as first_subscriber:

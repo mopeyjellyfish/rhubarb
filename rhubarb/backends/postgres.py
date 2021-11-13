@@ -71,7 +71,9 @@ class AsyncPgBackend(BaseBackend):
         :type message: str
         """
         self.logger.debug("Publishing %s to %s", message, channel)
-        await self._connection.execute("SELECT pg_notify($1, $2);", channel, message)
+        await self._connection.execute(
+            "SELECT pg_notify($1, $2);", channel, str(message)
+        )
 
     def _listener(self, *args: Any) -> None:
         """listener callback for the asyncpg `add_listener` call"""
