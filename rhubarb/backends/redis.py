@@ -1,14 +1,11 @@
-from typing import Any, Dict, List, Set, Union
+from typing import Any, Union
 
 import asyncio
 import logging
-from asyncio import exceptions
-from collections import namedtuple
 from contextlib import suppress
 from logging import Logger
 
 import aioredis
-import async_timeout
 
 from rhubarb.backends.base import BaseBackend
 from rhubarb.backends.exceptions import UnsubscribeError
