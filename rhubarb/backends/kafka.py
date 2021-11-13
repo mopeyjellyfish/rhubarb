@@ -3,6 +3,7 @@ from typing import Any, List, Optional, Set, Union
 import asyncio
 import logging
 from contextlib import suppress
+from logging import Logger
 from urllib.parse import urlparse
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
@@ -24,7 +25,7 @@ class KafkaBackend(BaseBackend):
         self._lock = asyncio.Lock()
         self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
         self._consumer_reader_task = None
-        self.logger = logging.getLogger("RedisBackend")
+        self.logger: Logger = logging.getLogger(__name__)
 
     async def connect(self) -> None:
         """Connects the producer to kafka backend"""

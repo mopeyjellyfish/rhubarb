@@ -1,6 +1,7 @@
 import asyncio
 import json
 from contextlib import suppress
+from logging import Logger
 
 from pytest import fixture, mark, raises
 
@@ -28,6 +29,9 @@ class TestRhubarb:
             assert hasattr(queue, "disconnect")
             assert hasattr(queue, "publish")
             assert isinstance(queue._backend, BaseBackend)
+            assert queue.logger
+            assert queue._lock
+            assert queue._subscribers == {}
 
     async def test_unknown_backend(self):
         with raises(UnknownBackend):
@@ -63,7 +67,7 @@ class TestRhubarb:
         assert "test-channel-1" not in queue._subscribers
         assert "test-channel-2" not in queue._subscribers
 
-    async def test_subscribers_multiple_channels(self, queue):
+    async def test_subscribers_multiple_channel_publish(self, queue):
         async with queue.subscribe("test-channel-1") as first_subscriber:
             async with queue.subscribe("test-channel-2") as second_subscriber:
                 assert first_subscriber is not second_subscriber
@@ -72,6 +76,12 @@ class TestRhubarb:
                 assert "test-channel-2" in queue._subscribers
                 assert len(queue._subscribers["test-channel-1"]) == 1
                 assert len(queue._subscribers["test-channel-2"]) == 1
+                await queue.publish("test-channel-1", "test-data-channel-1")
+                await queue.publish("test-channel-2", "test-data-channel-2")
+                event = await first_subscriber.get()
+                assert event.message == "test-data-channel-1"
+                event = await second_subscriber.get()
+                assert event.message == "test-data-channel-2"
 
         assert "test-channel-1" not in queue._subscribers
         assert "test-channel-2" not in queue._subscribers
@@ -87,7 +97,7 @@ class TestRhubarb:
                 await subscriber.get()
 
     async def test_subscribe_iteration(self, queue):
-        message_count = 10
+        message_count = 100
 
         async def publish_channel():
             for n in range(message_count):
@@ -107,7 +117,7 @@ class TestRhubarb:
 
     async def test_queue_ends_with_none_event(self, queue):
         async def add_none_event():
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0)
             for sub_queue in queue._subscribers["test-channel"]:
                 await sub_queue.put(None)
 

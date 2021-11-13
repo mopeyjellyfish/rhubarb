@@ -2,6 +2,7 @@ from typing import Any, Optional, Union
 
 import asyncio
 import logging
+from logging import Logger
 
 from rhubarb.backends.base import BaseBackend
 from rhubarb.backends.exceptions import UnsubscribeError
@@ -13,7 +14,7 @@ class MemoryBackend(BaseBackend):
         """A simple memory base queue, useful for testing and internal process communication"""
         self._channels: set[str] = set()
         self._url: str = url
-        self.logger = logging.getLogger("MemoryBackend")
+        self.logger: Logger = logging.getLogger(__name__)
 
     async def connect(self) -> None:
         """Connect simply creates the consumer queue"""

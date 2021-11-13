@@ -3,6 +3,7 @@ from typing import Any, List, Optional, Set, Union
 import asyncio
 import logging
 from contextlib import suppress
+from logging import Logger
 from urllib.parse import urlparse
 
 import aio_pika
@@ -23,7 +24,7 @@ class RabbitMQBackend(BaseBackend):
         self._channels: dict[str, asyncio.Task[None]] = {}
         self._lock = asyncio.Lock()
         self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
-        self.logger = logging.getLogger("RabbitMQBackend")
+        self.logger: Logger = logging.getLogger(__name__)
 
     async def connect(self) -> None:
         """Connects the producer to kafka backend"""

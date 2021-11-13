@@ -2,6 +2,7 @@ from typing import Any, Optional, Union
 
 import asyncio
 import logging
+from logging import Logger
 
 import asyncpg
 
@@ -18,7 +19,7 @@ class AsyncPgBackend(BaseBackend):
         :type url: str
         """
         self.url = url
-        self.logger = logging.getLogger("AsyncPgBackend")
+        self.logger: Logger = logging.getLogger(__name__)
 
     async def connect(self) -> None:
         """Connect to the postgres instance using ``self.url``"""

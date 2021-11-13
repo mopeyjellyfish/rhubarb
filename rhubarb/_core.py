@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 from contextlib import asynccontextmanager, suppress
+from logging import Logger
 from urllib.parse import urlparse
 
 from .backends.base import BaseBackend
@@ -29,7 +30,7 @@ class Rhubarb:
     .. code-block:: python
 
         async with Rhubarb(EVENT_QUEUE_URL) as events:
-            async with events.subscribe(channel="PUBLIC_STATE_ROOM_1") as subscriber:
+            async with events.subscribe(channel="CHATROOM") as subscriber:
                 async for event in subscriber:
                     await websocket.send_text(event.message)
 
@@ -66,7 +67,7 @@ class Rhubarb:
         :type url: str
         """
         backend_cls = self.get_backend(url)
-        self.logger = logging.getLogger()
+        self.logger: Logger = logging.getLogger(__name__)
         self._backend: BaseBackend = backend_cls(url)
 
         self._subscribers: dict[str, set[asyncio.Queue[Union[Event, None]]]] = {}

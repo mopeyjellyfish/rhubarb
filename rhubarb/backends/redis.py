@@ -4,6 +4,7 @@ import asyncio
 import logging
 from asyncio import exceptions
 from collections import namedtuple
+from logging import Logger
 
 import aioredis
 import async_timeout
@@ -27,7 +28,7 @@ class RedisBackend(BaseBackend):
         self.url: str = url
         self._channels: dict[str, Subscription] = {}
         self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
-        self.logger = logging.getLogger("RedisBackend")
+        self.logger: Logger = logging.getLogger(__name__)
 
     async def connect(self) -> None:
         """Connection to the configured Redis URL using ``aioredis``.

@@ -1,6 +1,8 @@
 from typing import Any
 
+import logging
 from abc import ABC, abstractmethod
+from logging import Logger
 
 from rhubarb.event import Event
 
