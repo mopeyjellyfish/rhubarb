@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any, List, Union
 
 import asyncio
 import logging
@@ -20,8 +20,8 @@ class RedisBackend(BaseBackend):
         :type url: str
         """
         self.url: str = url
-        self._channels: dict[str, asyncio.Task[None]] = {}
-        self._unsubscribed: set[str] = set()
+        self._channels: dict[str, asyncio.Task[None]] = {}  # the channels subscribed to
+        self._channel_latest_id: dict[str, int] = {}
         self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
         self.logger: Logger = logging.getLogger(__name__)
 
@@ -70,10 +70,8 @@ class RedisBackend(BaseBackend):
             subscription.cancel()
             with suppress(asyncio.CancelledError):
                 self.logger.debug("Waiting for '%s' reader task to cancel...", channel)
-                self._unsubscribed.add(channel)  # signal for the reader to close
+                del self._channels[channel]  # signal for the reader to close
                 await subscription  # wait for the reader to close
-                self._unsubscribed.remove(channel)  # clean up
-            del self._channels[channel]
         else:
             self.logger.warning("Unknown channel '%s'", channel)
             raise UnsubscribeError(f"Unknown channel {channel}")
@@ -98,11 +96,16 @@ class RedisBackend(BaseBackend):
         """
         self.logger.debug("Reader starting for '%s' channel", channel)
         streams: dict[str, int] = {channel: 0}
-        results = await self._redis.xrevrange(
-            channel, count=1
-        )  # read the last events from the channel
-        for message_id, values in reversed(results):
-            streams[channel] = message_id
+        if latest_message_id := self._channel_latest_id.get(
+            channel
+        ):  # history was called before
+            streams[channel] = latest_message_id
+        else:
+            results = await self._redis.xrevrange(
+                channel, count=1
+            )  # read the last events from the channel
+            for message_id, values in reversed(results):
+                streams[channel] = message_id
 
         self.logger.debug(
             "Latest stream id '%s' for '%s' channel", streams[channel], channel
@@ -125,7 +128,7 @@ class RedisBackend(BaseBackend):
                     event = Event(channel=stream_name, message=values["message"])
                     self._listen_queue.put_nowait(event)
             if (
-                channel in self._unsubscribed
+                channel not in self._channels
             ):  # check if the channel has unsubscribed and break out
                 break
 
@@ -133,3 +136,20 @@ class RedisBackend(BaseBackend):
         """Return the next event from the queue that was read from all channels"""
         self.logger.debug("Getting next event from redis...")
         return await self._listen_queue.get()
+
+    async def history(self, channel: str, count: int = 0) -> list[Event]:
+        """Optionally get a history of the last `n` events
+
+        :return: A list of the last events
+        :type: List
+        """
+        events = []
+        if count > 0:
+            self.logger.info("Reading the last %s events from '%s'", count, channel)
+            results = await self._redis.xrevrange(
+                channel, count=count
+            )  # read the last `n` events from the channel
+            for message_id, values in reversed(results):
+                events.append(Event(channel=channel, message=values["message"]))
+                self._channel_latest_id[channel] = message_id
+        return events

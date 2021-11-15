@@ -1,10 +1,10 @@
-from typing import Any
+from typing import Any, List
 
-import logging
 from abc import ABC, abstractmethod
-from logging import Logger
 
 from rhubarb.event import Event
+
+from .exceptions import HistoryError
 
 
 class BaseBackend(ABC):
@@ -53,6 +53,14 @@ class BaseBackend(ABC):
     async def next_event(self) -> Event:
         """Get the next published Event from the queue
 
-        :return:
+        :return: The next event read
         :rtype: Event
         """
+
+    async def history(self, channel: str, count: int = 0) -> list[Event]:
+        """Optionally get a history of the last `n` events
+
+        :return: A list of the last events
+        :type: List
+        """
+        raise HistoryError("History not supported for backend")

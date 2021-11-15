@@ -79,3 +79,12 @@ class TestRedisBackend:
         event = await redis.next_event()
         assert event.channel == "test-channel-a"
         assert event.message == "Just a message"
+
+    async def test_redis_history_subscribe(self, redis):
+        await redis.publish("test-channel-1", "test-message")
+        historic_events = await redis.history("test-channel-1", 1)
+        await redis.subscribe("test-channel-1")
+        await asyncio.sleep(0)
+        assert len(historic_events) == 1
+        assert historic_events[0].message == "test-message"
+        assert redis._channel_latest_id["test-channel-1"]

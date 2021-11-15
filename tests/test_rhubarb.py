@@ -9,6 +9,7 @@ from pytest import fixture, mark, raises
 
 from rhubarb._core import Rhubarb, UnknownBackend, Unsubscribed
 from rhubarb.backends.base import BaseBackend
+from rhubarb.backends.exceptions import HistoryError
 
 
 @fixture
@@ -172,3 +173,29 @@ class TestRhubarb:
         event = await subscriber_json.get()
         assert event.channel == "test-channel"
         assert event.message == test_message
+
+    async def test_subscribe_history(self, URL, queue):
+        if URL == "redis://localhost:6379/0":
+            events = list(range(10))
+            for i in events:
+                await queue.publish("test-channel", f"{i}")
+
+            async with queue.subscribe("test-channel", history=10) as subscriber:
+                read_events = []
+                count = 0
+                async for event in subscriber:
+                    read_events.append(event.message)
+                    count += 1
+                    if count == len(events):  # read the last events
+                        break
+
+                assert all(
+                    (
+                        str(event) == read_event
+                        for event, read_event in zip(events, read_events)
+                    )
+                )
+        else:
+            with raises(HistoryError, match="History not supported for backend"):
+                async with queue.subscribe("test-channel", history=10):
+                    return

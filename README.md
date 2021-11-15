@@ -34,6 +34,42 @@ There are a number of backends that can be used with Rhubarb:
 - `Rhubarb("amqp://guest:guest@localhost/")`
 - `Rhubarb("memory://")`
 
+## Quick start
+
+### Simple event consumer
+
+```python
+async with Rhubarb("redis://localhost:6379/0") as events:
+    async with events.subscribe(channel="CHATROOM") as subscriber:
+        async for event in subscriber:
+            await websocket.send_text(event.message)
+```
+
+### Simple event producer
+
+```python
+async with Rhubarb("redis://localhost:6379/0") as events:
+    await events.publish("test message")
+```
+
+### History retrieval
+
+```python
+async with Rhubarb("redis://localhost:6379/0") as events: 
+    async with events.subscribe(channel="CHATROOM", history=10) as subscriber: # read the last 10 events published to the channel
+        async for event in subscriber:
+            await websocket.send_text(event.message)
+```
+
+### Custom serializer & deserializer
+
+```python
+async with Rhubarb("redis://localhost:6379/0", serializer=json.dumps, deserializer=json.loads) as events:
+    async with events.subscribe(channel="CHATROOM", history=10) as subscriber: # read the last 10 events published to the channel
+        async for event in subscriber:
+            await websocket.send_text(event.message)
+```
+
 ## Example
 
 A minimal working example can be found in [example](https://github.com/mopeyjellyfish/rhubarb/blob/main/example/app.py) directory.

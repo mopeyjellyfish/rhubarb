@@ -162,8 +162,26 @@ class Rhubarb:
         self.logger.debug("Publishing to %s message: %s", channel, _message)
         await self._backend.publish(channel, _message)
 
+    async def _get_history(
+        self, channel: str, queue: asyncio.Queue[Union[Event, None]], count: int = 0
+    ):
+        """Get the last `n` events from the backend
+
+        :param channel: channel name to retrieve the history of
+        :type channel: str
+        :param queue: the queue to write historical events to
+        :type queue: asyncio.Queue
+        :param count: number of events to retrieve from the history
+        :type count: int
+        """
+        self.logger.info("Retrieving %s events from channel '%s'", count, channel)
+        if count > 0:
+            events = await self._backend.history(channel, count=count)
+            for event in events:
+                queue.put_nowait(event)
+
     async def _subscribe(
-        self, channel: str, queue: asyncio.Queue[Union[Event, None]]
+        self, channel: str, queue: asyncio.Queue[Union[Event, None]], history: int = 0
     ) -> asyncio.Queue[Union[Event, None]]:
         """Subscribes a queue to the channel and subscribes to the channel in the backend
 
@@ -176,12 +194,20 @@ class Rhubarb:
         """
         self.logger.debug("Subscribing to %s", channel)
         async with self._lock:  # ensure that only one co-routine mutates state at a time
+            await self._get_history(channel, queue, count=history)
+
             if not self._subscribers.get(
                 channel
             ):  # if channel doesn't exist or the set is empty then subscribe on the backend
+                self.logger.debug(
+                    "New subscription, subscribing to '%s' on the backend", channel
+                )
                 await self._backend.subscribe(channel)
                 self._subscribers[channel] = {queue}
             else:
+                self.logger.debug(
+                    "Already subscribed to '%s', appending queue", channel
+                )
                 self._subscribers[channel].add(queue)
 
         return queue
@@ -208,16 +234,20 @@ class Rhubarb:
                 await self._backend.unsubscribe(channel)
 
     @asynccontextmanager
-    async def subscribe(self, channel: str) -> AsyncIterator["Subscriber"]:
+    async def subscribe(
+        self, channel: str, history: int = 0
+    ) -> AsyncIterator["Subscriber"]:
         """A context manager that will yield a subscriber
 
         :param channel: channel name to subscribe to
         :type channel: str
+        :param history: the number of historical events to retrieve, defaults to 0
+        :type history: int
         """
         queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
 
         try:
-            await self._subscribe(channel, queue)
+            await self._subscribe(channel, queue, history)
             yield Subscriber(queue, self._deserializer)
             await self._unsubscribe(channel, queue)
         finally:
