@@ -4,7 +4,6 @@ import asyncio
 
 from pytest import fixture, mark, raises
 
-from rhubarb.backends.exceptions import UnsubscribeError
 from rhubarb.backends.kafka import KafkaBackend
 from rhubarb.event import Event
 
@@ -46,8 +45,7 @@ class TestKafkaBackend:
         assert "test-channel" not in kafka._channels
 
     async def test_unsubscribe_unknown_channel(self, kafka):
-        with raises(UnsubscribeError, match="Unknown channel unknown-channel-name"):
-            await kafka.unsubscribe("unknown-channel-name")
+        await kafka.unsubscribe("unknown-channel-name")
 
     async def test_kafka_unsubscribe_one_of_many(self, kafka):
         await kafka.subscribe("test-channel")

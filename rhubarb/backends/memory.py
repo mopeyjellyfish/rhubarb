@@ -5,7 +5,6 @@ import logging
 from logging import Logger
 
 from rhubarb.backends.base import BaseBackend
-from rhubarb.backends.exceptions import UnsubscribeError
 from rhubarb.event import Event
 
 
@@ -39,7 +38,6 @@ class MemoryBackend(BaseBackend):
             self._channels.remove(channel)
         else:
             self.logger.warning("Unknown channel %s", channel)
-            raise UnsubscribeError(f"Unknown channel {channel}")
 
     async def publish(self, channel: str, message: Any) -> None:
         """Create an ``Event`` and put onto the consumer queue"""

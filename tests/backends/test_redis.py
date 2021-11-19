@@ -5,7 +5,6 @@ import asyncio
 from aioredis.exceptions import ConnectionError
 from pytest import fixture, mark, raises
 
-from rhubarb.backends.exceptions import UnsubscribeError
 from rhubarb.backends.redis import RedisBackend
 from rhubarb.event import Event
 
@@ -52,8 +51,7 @@ class TestRedisBackend:
         assert "test-channel" not in redis._channels
 
     async def test_redis_unsubscribe_unknown_channel(self, redis):
-        with raises(UnsubscribeError, match="Unknown channel unknown-channel-name"):
-            await redis.unsubscribe("unknown-channel-name")
+        await redis.unsubscribe("unknown-channel-name")
 
     async def test_duplicate_subscribe_request(self, redis):
         await redis.subscribe("test-channel")

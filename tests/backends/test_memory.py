@@ -5,7 +5,6 @@ import asyncio
 from aioredis.exceptions import ConnectionError
 from pytest import fixture, mark, raises
 
-from rhubarb.backends.exceptions import UnsubscribeError
 from rhubarb.backends.memory import MemoryBackend
 from rhubarb.event import Event
 
@@ -45,8 +44,7 @@ class TestMemoryBackend:
         assert "test-channel" not in memory._channels
 
     async def test_memory_unsubscribe_unknown_channel(self, memory):
-        with raises(UnsubscribeError, match="Unknown channel unknown-channel-name"):
-            await memory.unsubscribe("unknown-channel-name")
+        await memory.unsubscribe("unknown-channel-name")
 
     async def test_duplicate_subscribe_request(self, memory):
         await memory.subscribe("test-channel")

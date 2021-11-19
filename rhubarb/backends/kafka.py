@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 
 from rhubarb.backends.base import BaseBackend
-from rhubarb.backends.exceptions import UnsubscribeError
 from rhubarb.event import Event
 
 
@@ -85,7 +84,6 @@ class KafkaBackend(BaseBackend):
                     await self._start_consumer()
             else:
                 self.logger.warning("Unknown channel %s", channel)
-                raise UnsubscribeError(f"Unknown channel {channel}")
 
     async def publish(self, channel: str, message: Any) -> None:
         """Using the created ``self._producer`` publish a message to the provided channel

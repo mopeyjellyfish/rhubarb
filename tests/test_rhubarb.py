@@ -199,3 +199,33 @@ class TestRhubarb:
             with raises(HistoryError, match="History not supported for backend"):
                 async with queue.subscribe("test-channel", history=10):
                     return
+
+    async def test_disconnect_subscribers_are_closed(self, URL):
+        """test that an event object disconnecting also stops subscribers gracefully"""
+        queue = Rhubarb(URL)
+        await queue.connect()
+        async with queue.subscribe("test-channel") as subscriber:
+            await queue.disconnect()  # while subscribed to a channel in one co-routine its possible to disconnect the event bus in another co routine.
+            async for _ in subscriber:  # should not iterate anything here, if the subscriber queues were not closed then this would block.
+                pass
+
+        assert "test-channel" not in queue._subscribers
+
+    async def test_cancel_coroutine_subscriber(self, queue):
+        async def subscriber():
+            async with queue.subscribe("test-channel") as subscriber:
+                async for _ in subscriber:  # Iterate the subscriber to produce a `asyncio.exceptions.CancelledError` when the task is cancelled
+                    pass
+
+        task = asyncio.create_task(subscriber())
+        await asyncio.sleep(0)  # yield control to the event bus to begin subscribe
+        await asyncio.sleep(0)  # yield control to the event bus to complete subscribe
+        await asyncio.sleep(0)  # yield control to the event bus to iterate
+        task.cancel()
+        with suppress(
+            asyncio.exceptions.CancelledError
+        ):  # not an exception we need to assert for
+            await task
+        assert (
+            "test-channel" not in queue._subscribers
+        )  # if the subscriber was unsubscribed correctly then they won't appear in the subscribers.

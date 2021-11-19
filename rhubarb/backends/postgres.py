@@ -7,7 +7,6 @@ from logging import Logger
 import asyncpg
 
 from rhubarb.backends.base import BaseBackend
-from rhubarb.backends.exceptions import UnsubscribeError
 from rhubarb.event import Event
 
 
@@ -58,7 +57,6 @@ class AsyncPgBackend(BaseBackend):
             self._channels.remove(channel)
         else:
             self.logger.warning("Unknown channel %s", channel)
-            raise UnsubscribeError(f"Unknown channel {channel}")
 
         self.logger.info("Unsubscribed from %s", channel)
 

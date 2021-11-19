@@ -4,7 +4,6 @@ import asyncio
 
 from pytest import fixture, mark, raises
 
-from rhubarb.backends.exceptions import UnsubscribeError
 from rhubarb.backends.rabbitmq import RabbitMQBackend
 from rhubarb.event import Event
 
@@ -44,8 +43,7 @@ class TestRabbitMQBackend:
         assert "test-channel" not in rabbit_mq._channels
 
     async def test_rabbit_mq_unsubscribe_unknown_channel(self, rabbit_mq):
-        with raises(UnsubscribeError, match="Unknown channel unknown-channel-name"):
-            await rabbit_mq.unsubscribe("unknown-channel-name")
+        await rabbit_mq.unsubscribe("unknown-channel-name")
 
     async def test_duplicate_subscribe_request(self, rabbit_mq):
         await rabbit_mq.subscribe("test-channel")

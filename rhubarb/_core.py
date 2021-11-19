@@ -123,6 +123,12 @@ class Rhubarb:
             await self._backend.connect()
             self._reader_task = asyncio.create_task(self._reader())
 
+    async def _close_subscriptions(self) -> None:
+        """Close queues for subscribers"""
+        for subscribers in self._subscribers.values():
+            for queue in subscribers:
+                await queue.put(None)
+
     async def disconnect(self) -> None:
         """Close the running backend reader and ensure that the backend is disconnected"""
         self.logger.info("Disconnecting from backend")
@@ -134,6 +140,8 @@ class Rhubarb:
                 self._reader_task.cancel()
                 with suppress(asyncio.exceptions.CancelledError):
                     await self._reader_task
+
+            await self._close_subscriptions()  # close subscriptions so that subscribers to the event bus stop waiting for events
             await self._backend.disconnect()
 
     async def __aenter__(self) -> "Rhubarb":
@@ -226,12 +234,11 @@ class Rhubarb:
         """
         self.logger.debug("Unsubscribing from %s", channel)
         async with self._lock:  # ensure that only one co-routine mutates state at a time
-            self._subscribers[channel].remove(queue)
-            if not self._subscribers.get(
-                channel
-            ):  # If there are no subscribers then remove channel
-                del self._subscribers[channel]
-                await self._backend.unsubscribe(channel)
+            if (subscriber := self._subscribers.get(channel)) is not None:
+                subscriber.remove(queue)
+                if not subscriber:
+                    del self._subscribers[channel]
+                    await self._backend.unsubscribe(channel)
 
     @asynccontextmanager
     async def subscribe(
@@ -249,8 +256,8 @@ class Rhubarb:
         try:
             await self._subscribe(channel, queue, history)
             yield Subscriber(queue, self._deserializer)
-            await self._unsubscribe(channel, queue)
         finally:
+            await self._unsubscribe(channel, queue)
             self.logger.debug("Closing queue for %s channel", channel)
             await queue.put(None)
 

@@ -4,7 +4,6 @@ import asyncio
 
 from pytest import fixture, mark, raises
 
-from rhubarb.backends.exceptions import UnsubscribeError
 from rhubarb.backends.postgres import AsyncPgBackend
 from rhubarb.event import Event
 
@@ -44,8 +43,7 @@ class TestAsyncPgBackend:
         assert "test-channel" not in asyncpg._channels
 
     async def test_asyncpg_unsubscribe_unknown_channel(self, asyncpg):
-        with raises(UnsubscribeError, match="Unknown channel unknown-channel-name"):
-            await asyncpg.unsubscribe("unknown-channel-name")
+        await asyncpg.unsubscribe("unknown-channel-name")
 
     async def test_duplicate_subscribe_request(self, asyncpg):
         await asyncpg.subscribe("test-channel")

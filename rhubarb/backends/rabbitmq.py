@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 import aio_pika
 
 from rhubarb.backends.base import BaseBackend
-from rhubarb.backends.exceptions import UnsubscribeError
 from rhubarb.event import Event
 
 
@@ -70,7 +69,6 @@ class RabbitMQBackend(BaseBackend):
             del self._channels[channel]
         else:
             self.logger.warning("Unknown channel %s", channel)
-            raise UnsubscribeError(f"Unknown channel {channel}")
 
     async def publish(self, channel: str, message: Any) -> None:
         """Using the created ``self._producer`` publish a message to the provided channel

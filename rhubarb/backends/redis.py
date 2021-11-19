@@ -8,7 +8,6 @@ from logging import Logger
 import aioredis
 
 from rhubarb.backends.base import BaseBackend
-from rhubarb.backends.exceptions import UnsubscribeError
 from rhubarb.event import Event
 
 
@@ -61,7 +60,6 @@ class RedisBackend(BaseBackend):
 
         :param channel: channel name to subscribe to
         :type channel: str
-        :raises UnsubscribeError: When unsubscribed from a channel
         """
         self.logger.info("Unsubscribing from '%s'", channel)
         if (subscription := self._channels.get(channel)) is not None:
@@ -74,7 +72,6 @@ class RedisBackend(BaseBackend):
                 await subscription  # wait for the reader to close
         else:
             self.logger.warning("Unknown channel '%s'", channel)
-            raise UnsubscribeError(f"Unknown channel {channel}")
 
     async def publish(self, channel: str, message: Any) -> None:
         """Using the configured redis connection to publish a message to the provided channel
