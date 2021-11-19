@@ -67,7 +67,7 @@ python-versions = "*"
 
 [[package]]
 name = "astroid"
-version = "2.8.4"
+version = "2.8.5"
 description = "An abstract syntax tree for Python with inference support."
 category = "dev"
 optional = false
@@ -325,7 +325,7 @@ typing-extensions = {version = ">=3.7.4.3", markers = "python_version < \"3.10\"
 
 [[package]]
 name = "hypothesis"
-version = "6.24.3"
+version = "6.25.0"
 description = "A library for property-based testing"
 category = "dev"
 optional = false
@@ -620,7 +620,7 @@ typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""
 
 [[package]]
 name = "pyparsing"
-version = "3.0.5"
+version = "3.0.6"
 description = "Python parsing module"
 category = "dev"
 optional = false
@@ -932,11 +932,11 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "typing-extensions"
-version = "3.10.0.2"
-description = "Backported and Experimental Type Hints for Python 3.5+"
+version = "4.0.0"
+description = "Backported and Experimental Type Hints for Python 3.6+"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [[package]]
 name = "urllib3"
@@ -999,7 +999,7 @@ redis = ["aioredis"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "6ef4ca8ad85e4448c831c52f2ea78e09f5615f1ee3c8aee86ced88626f5590af"
+content-hash = "2031a67e64e2df9c14e902997da0a744c0b4fc94af14492340b0b686f5dd55e5"
 
 [metadata.files]
 aio-pika = [
@@ -1042,8 +1042,8 @@ alabaster = [
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
 ]
 astroid = [
-    {file = "astroid-2.8.4-py3-none-any.whl", hash = "sha256:0755c998e7117078dcb7d0bda621391dd2a85da48052d948c7411ab187325346"},
-    {file = "astroid-2.8.4.tar.gz", hash = "sha256:1e83a69fd51b013ebf5912d26b9338d6643a55fec2f20c787792680610eed4a2"},
+    {file = "astroid-2.8.5-py3-none-any.whl", hash = "sha256:abc423a1e85bc1553954a14f2053473d2b7f8baf32eae62a328be24f436b5107"},
+    {file = "astroid-2.8.5.tar.gz", hash = "sha256:11f7356737b624c42e21e71fe85eea6875cb94c03c82ac76bd535a0ff10b0f25"},
 ]
 async-timeout = [
     {file = "async-timeout-4.0.1.tar.gz", hash = "sha256:b930cb161a39042f9222f6efb7301399c87eeab394727ec5437924a36d6eef51"},
@@ -1186,8 +1186,8 @@ gitpython = [
     {file = "GitPython-3.1.24.tar.gz", hash = "sha256:df83fdf5e684fef7c6ee2c02fc68a5ceb7e7e759d08b694088d0cacb4eba59e5"},
 ]
 hypothesis = [
-    {file = "hypothesis-6.24.3-py3-none-any.whl", hash = "sha256:8dee9d2220b4ad34e5553a90258120f1daff9bdf7379e3afe13cb523d22da76e"},
-    {file = "hypothesis-6.24.3.tar.gz", hash = "sha256:fccfba3803f391eea2c8c6f21667886ca7407b135b6121e0701a7f8addc176f7"},
+    {file = "hypothesis-6.25.0-py3-none-any.whl", hash = "sha256:60b5b03de4219d0ead26d481e4029941024b9cbeb4ef99cc285c5fafa920e908"},
+    {file = "hypothesis-6.25.0.tar.gz", hash = "sha256:8e126f2f59d81f32a5c6866df2558b119938515ed9cd6c9a044ef6a74e649ee5"},
 ]
 identify = [
     {file = "identify-2.3.5-py2.py3-none-any.whl", hash = "sha256:ba945bddb4322394afcf3f703fa68eda08a6acc0f99d9573eb2be940aa7b9bba"},
@@ -1468,8 +1468,8 @@ pylint = [
     {file = "pylint-2.11.1.tar.gz", hash = "sha256:2c9843fff1a88ca0ad98a256806c82c5a8f86086e7ccbdb93297d86c3f90c436"},
 ]
 pyparsing = [
-    {file = "pyparsing-3.0.5-py3-none-any.whl", hash = "sha256:4881e3d2979f27b41a3a2421b10be9cbfa7ce2baa6c7117952222f8bbea6650c"},
-    {file = "pyparsing-3.0.5.tar.gz", hash = "sha256:9329d1c1b51f0f76371c4ded42c5ec4cc0be18456b22193e0570c2da98ed288b"},
+    {file = "pyparsing-3.0.6-py3-none-any.whl", hash = "sha256:04ff808a5b90911829c55c4e26f75fa5ca8a2f5f36aa3a51f68e27033341d3e4"},
+    {file = "pyparsing-3.0.6.tar.gz", hash = "sha256:d9bdec0013ef1eb5a84ab39a3b3868911598afa494f5faa038647101504e2b81"},
 ]
 pytest = [
     {file = "pytest-6.2.5-py3-none-any.whl", hash = "sha256:7310f8d27bc79ced999e760ca304d69f6ba6c6649c0b60fb0e04a4a77cacc134"},
@@ -1650,9 +1650,8 @@ tomli = [
     {file = "tomli-1.2.2.tar.gz", hash = "sha256:c6ce0015eb38820eaf32b5db832dbc26deb3dd427bd5f6556cf0acac2c214fee"},
 ]
 typing-extensions = [
-    {file = "typing_extensions-3.10.0.2-py2-none-any.whl", hash = "sha256:d8226d10bc02a29bcc81df19a26e56a9647f8b0a6d4a83924139f4a8b01f17b7"},
-    {file = "typing_extensions-3.10.0.2-py3-none-any.whl", hash = "sha256:f1d25edafde516b146ecd0613dabcc61409817af4766fbbcfb8d1ad4ec441a34"},
-    {file = "typing_extensions-3.10.0.2.tar.gz", hash = "sha256:49f75d16ff11f1cd258e1b988ccff82a3ca5570217d7ad8c5f48205dd99a677e"},
+    {file = "typing_extensions-4.0.0-py3-none-any.whl", hash = "sha256:829704698b22e13ec9eaf959122315eabb370b0884400e9818334d8b677023d9"},
+    {file = "typing_extensions-4.0.0.tar.gz", hash = "sha256:2cdf80e4e04866a9b3689a51869016d36db0814d84b8d8a568d22781d45d27ed"},
 ]
 urllib3 = [
     {file = "urllib3-1.26.7-py2.py3-none-any.whl", hash = "sha256:c4fdf4019605b6e5423637e01bc9fe4daef873709a7973e195ceba0a62bbc844"},
