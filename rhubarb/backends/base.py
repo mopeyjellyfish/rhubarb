@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, AsyncIterator, List
 
 from abc import ABC, abstractmethod
 
@@ -57,10 +57,11 @@ class BaseBackend(ABC):
         :rtype: Event
         """
 
-    async def history(self, channel: str, count: int = 0) -> list[Event]:
+    async def history(self, channel: str, count: int = 0) -> AsyncIterator[Event]:
         """Optionally get a history of the last `n` events
 
         :return: A list of the last events
         :type: List
         """
+        yield None
         raise HistoryError("History not supported for backend")

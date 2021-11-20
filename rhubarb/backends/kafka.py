@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Set, Union
+from typing import Any, AsyncIterator, List, Optional, Set, Union
 
 import asyncio
 import logging
@@ -6,7 +6,7 @@ from contextlib import suppress
 from logging import Logger
 from urllib.parse import urlparse
 
-from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
+from aiokafka import AIOKafkaConsumer, AIOKafkaProducer, TopicPartition
 
 from rhubarb.backends.base import BaseBackend
 from rhubarb.event import Event
@@ -43,7 +43,7 @@ class KafkaBackend(BaseBackend):
     async def _start_consumer(self):
         """Internal start consumer method creating a kafka consumer for the requested channels"""
         self._consumer = AIOKafkaConsumer(
-            *self._channels, bootstrap_servers=self._servers
+            *self._channels, bootstrap_servers=self._servers, auto_offset_reset="latest"
         )
         await self._consumer.start()
         self._consumer_reader_task: asyncio.Task[None] = asyncio.create_task(  # type: ignore
@@ -111,3 +111,56 @@ class KafkaBackend(BaseBackend):
         """Return the next event from the queue that was read from all channels"""
         self.logger.debug("Getting next event from kafka...")
         return await self._listen_queue.get()
+
+    async def _get_channel_history(
+        self, channel: str, count: int, consumer: AIOKafkaConsumer
+    ) -> AsyncIterator[Event]:
+        """For a given channel will retrieve the last messages in the stream based starting `count` number of messages back
+
+        :param channel: the channel to retrieve the historic events from
+        :type channel: str
+        :param count: how many events to reread
+        :type count: int
+        :param consumer: the consumer constructed by the caller for reading events
+        :type consumer: AIOKafkaConsumer
+
+        :return: AsyncIterator of events
+        """
+        partitions = {
+            TopicPartition(channel, part)
+            for part in consumer.partitions_for_topic(channel)
+        }
+        end_offsets = await consumer.end_offsets(partitions)  # get the lastest offset
+        for tp, offset_meta in end_offsets.items():
+            if offset_meta <= count:  # can't set and offset less than 0
+                self.logger.debug("Seeking to the beginning of channel %s", channel)
+                await consumer.seek_to_beginning(tp)
+            else:
+                self.logger.debug(
+                    "Seeking channe %s to offset %d", channel, offset_meta - count
+                )
+                consumer.seek(
+                    tp, offset_meta - count
+                )  # seek back to reread the stream in order
+
+            while partitions:
+                messages = await consumer.getmany(*partitions, timeout_ms=100)
+
+                for tp, batch in messages.items():
+                    for message in batch:
+                        yield Event(
+                            channel=channel, message=message.value.decode("utf8")
+                        )
+                    partitions.remove(tp)
+
+    async def history(self, channel: str, count: int) -> AsyncIterator[Event]:
+        """Used by Rhubarb to retrieve a list of events"""
+        if count > 0:
+            self.logger.info("Reading the last %s events from '%s'", count, channel)
+            consumer = AIOKafkaConsumer(
+                channel, bootstrap_servers=self._servers, auto_offset_reset="latest"
+            )
+            await consumer.start()
+            async for event in self._get_channel_history(channel, count, consumer):
+                yield event
+            await consumer.stop()

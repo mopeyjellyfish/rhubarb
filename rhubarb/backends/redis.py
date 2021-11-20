@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import Any, AsyncIterator, List, Union
 
 import asyncio
 import logging
@@ -134,19 +134,17 @@ class RedisBackend(BaseBackend):
         self.logger.debug("Getting next event from redis...")
         return await self._listen_queue.get()
 
-    async def history(self, channel: str, count: int = 0) -> list[Event]:
+    async def history(self, channel: str, count: int = 0) -> AsyncIterator[Event]:
         """Optionally get a history of the last `n` events
 
         :return: A list of the last events
         :type: List
         """
-        events = []
         if count > 0:
             self.logger.info("Reading the last %s events from '%s'", count, channel)
             results = await self._redis.xrevrange(
                 channel, count=count
             )  # read the last `n` events from the channel
             for message_id, values in reversed(results):
-                events.append(Event(channel=channel, message=values["message"]))
+                yield Event(channel=channel, message=values["message"])
                 self._channel_latest_id[channel] = message_id
-        return events

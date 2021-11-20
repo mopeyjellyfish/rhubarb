@@ -175,7 +175,8 @@ class TestRhubarb:
         assert event.message == test_message
 
     async def test_subscribe_history(self, URL, queue):
-        if URL == "redis://localhost:6379/0":
+        supported = ["redis://localhost:6379/0", "kafka://localhost:9092"]
+        if URL in supported:
             events = list(range(10))
             for i in events:
                 await queue.publish("test-channel", f"{i}")

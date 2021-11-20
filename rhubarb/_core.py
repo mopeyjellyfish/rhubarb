@@ -184,8 +184,7 @@ class Rhubarb:
         """
         self.logger.info("Retrieving %s events from channel '%s'", count, channel)
         if count > 0:
-            events = await self._backend.history(channel, count=count)
-            for event in events:
+            async for event in self._backend.history(channel, count=count):
                 queue.put_nowait(event)
 
     async def _subscribe(
