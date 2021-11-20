@@ -172,7 +172,7 @@ class Rhubarb:
 
     async def _get_history(
         self, channel: str, queue: asyncio.Queue[Union[Event, None]], count: int = 0
-    ):
+    ) -> None:
         """Get the last `n` events from the backend
 
         :param channel: channel name to retrieve the history of
@@ -275,7 +275,7 @@ class Subscriber:
         self._queue = queue
         self._deserializer = deserializer
 
-    async def __aiter__(self) -> Optional[AsyncGenerator[Event, None]]:
+    async def __aiter__(self) -> AsyncGenerator[Event, None]:
         """Async iterable allows for iterating over subscribed events"""
         try:
             while event := await self.get():

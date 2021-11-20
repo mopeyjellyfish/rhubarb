@@ -82,7 +82,7 @@ class TestKafkaBackend:
         assert len(historic_events) == 1
         assert historic_events[0].message == "test-message"
 
-    async def test_kafka_history_subscribe(self, kafka):
+    async def test_kafka_history_subscribe_past_offset(self, kafka):
         await kafka.publish("test-channel-1", "test-message")
         historic_events = [
             event async for event in kafka.history("test-channel-1", 9999999999999)
