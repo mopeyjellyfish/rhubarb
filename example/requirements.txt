@@ -1,3 +1,4 @@
 uvicorn[standard]
+gunicorn
 starlette
-rhubarb-py
+rhubarb-py[redis]
