@@ -2,6 +2,7 @@ import asyncio
 import json
 from contextlib import suppress
 from logging import Logger
+from multiprocessing import Process
 
 from hypothesis import given
 from hypothesis import strategies as st
@@ -160,12 +161,23 @@ class TestRhubarb:
     async def test_disconnect_reader_stopped(self, URL):
         queue = Rhubarb(URL)
         await queue.connect()
+        await queue.connect()
         assert not queue._reader_task.done()
         queue._reader_task.cancel()
         with suppress(asyncio.exceptions.CancelledError):
             await queue._reader_task
         await queue.disconnect()
         assert queue._reader_task.done()
+
+    async def test_duplicate_connect_warning(self, URL, caplog):
+        queue = Rhubarb(URL)
+        await queue.connect()
+        await queue.connect()
+        assert (
+            "Already connected 'True', was connect called more than once?"
+            in caplog.text
+        )
+        await queue.disconnect()
 
     async def test_publish_subscribe_json(self, queue_json, subscriber_json):
         test_message = {"test_key": "test_value"}
@@ -230,3 +242,26 @@ class TestRhubarb:
         assert (
             "test-channel" not in queue._subscribers
         )  # if the subscriber was unsubscribed correctly then they won't appear in the subscribers.
+
+    async def test_connecting_in_child_process(self, queue, URL):
+        if "memory" not in URL:  # skip memory backend
+            events = Rhubarb(URL)  # make the event bus in one event loop
+
+            def event_connect(event_bus):
+                async def event_bus_run(child_event_bus):
+                    await child_event_bus.connect()  # connect in another event loop
+                    async with child_event_bus.subscribe("test-channel") as subscriber:
+                        async for _ in subscriber:  # Iterate the subscriber to produce a `asyncio.exceptions.CancelledError` when the task is cancelled
+                            break
+                    await child_event_bus.disconnect()
+
+                loop = asyncio.new_event_loop()
+
+                loop.run_until_complete(event_bus_run(event_bus))
+                loop.close()
+
+            p = Process(target=event_connect, args=(events,))
+            p.start()
+            await asyncio.sleep(0.5)  # let the process start up
+            await queue.publish("test-channel", "test")
+            p.join()

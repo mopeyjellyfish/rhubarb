@@ -78,6 +78,7 @@ class Rhubarb:
         self._deserializer: Optional[Callable[[str], Any]] = deserializer
         self._subscribers: dict[str, set[asyncio.Queue[Union[Event, None]]]] = {}
         self._lock = asyncio.Lock()
+        self._connected = False
 
     def get_backend(self, url: str) -> BaseBackend:
         parsed_url = urlparse(url)
@@ -120,8 +121,15 @@ class Rhubarb:
         """Connect to backend and read Events from the queue"""
         self.logger.info("Connecting to backend")
         async with self._lock:
-            await self._backend.connect()
-            self._reader_task = asyncio.create_task(self._reader())
+            if not self._connected:
+                await self._backend.connect()
+                self._reader_task = asyncio.create_task(self._reader())
+                self._connected = True
+            else:
+                self.logger.warning(
+                    "Already connected '%s', was connect called more than once?",
+                    self._connected,
+                )
 
     async def _close_subscriptions(self) -> None:
         """Close queues for subscribers"""
@@ -143,6 +151,7 @@ class Rhubarb:
 
             await self._close_subscriptions()  # close subscriptions so that subscribers to the event bus stop waiting for events
             await self._backend.disconnect()
+            self._connected = False
 
     async def __aenter__(self) -> "Rhubarb":
         """Allows for the queue to be used in a context manager"""
