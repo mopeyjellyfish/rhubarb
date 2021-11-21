@@ -22,12 +22,12 @@ class RabbitMQBackend(BaseBackend):
         self._url: str = url
         self._channels: dict[str, asyncio.Task[None]] = {}
         self._lock = asyncio.Lock()
-        self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
         self.logger: Logger = logging.getLogger(__name__)
 
     async def connect(self) -> None:
         """Connects the producer to kafka backend"""
         self.logger.info("Connecting to %s", self._url)
+        self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
         self._connection: Any = await aio_pika.connect_robust(self._url)
         self._producer = await self._connection.channel()
         self.logger.info("Connected to %s", self._url)

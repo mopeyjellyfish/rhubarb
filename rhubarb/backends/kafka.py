@@ -22,13 +22,13 @@ class KafkaBackend(BaseBackend):
         self._servers: list[str] = [urlparse(url).netloc]
         self._channels: set[str] = set()
         self._lock = asyncio.Lock()
-        self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
         self._consumer_reader_task = None
         self.logger: Logger = logging.getLogger(__name__)
 
     async def connect(self) -> None:
         """Connects the producer to kafka backend"""
         self.logger.info("Connecting to %s", self._servers)
+        self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
         self._producer = AIOKafkaProducer(bootstrap_servers=self._servers)
         await self._producer.start()
         self.logger.info("Connected to %s", self._servers)

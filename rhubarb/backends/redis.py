@@ -21,7 +21,6 @@ class RedisBackend(BaseBackend):
         self.url: str = url
         self._channels: dict[str, asyncio.Task[None]] = {}  # the channels subscribed to
         self._channel_latest_id: dict[str, int] = {}
-        self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
         self.logger: Logger = logging.getLogger(__name__)
 
     async def connect(self) -> None:
@@ -29,6 +28,7 @@ class RedisBackend(BaseBackend):
         Execute a `ping` to check if the connection is valid.
         """
         self.logger.info("Connecting to '%s'", self.url)
+        self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
         self._redis = aioredis.from_url(
             self.url, encoding="utf-8", decode_responses=True
         )
