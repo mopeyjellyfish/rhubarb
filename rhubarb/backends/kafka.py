@@ -30,6 +30,7 @@ class KafkaBackend(BaseBackend):
         self.logger.info("Connecting to %s", self._servers)
         self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
         self._producer = AIOKafkaProducer(bootstrap_servers=self._servers)
+        self.logger.info("Starting producer...")
         await self._producer.start()
         self.logger.info("Connected to %s", self._servers)
 
@@ -42,9 +43,11 @@ class KafkaBackend(BaseBackend):
 
     async def _start_consumer(self):
         """Internal start consumer method creating a kafka consumer for the requested channels"""
+        self.logger.info("Consuming messages from '%s' channels", self._channels)
         self._consumer = AIOKafkaConsumer(
             *self._channels, bootstrap_servers=self._servers, auto_offset_reset="latest"
         )
+        self.logger.debug("Starting Kafka consumer...")
         await self._consumer.start()
         self._consumer_reader_task: asyncio.Task[None] = asyncio.create_task(  # type: ignore
             self._reader()
@@ -52,10 +55,13 @@ class KafkaBackend(BaseBackend):
 
     async def _stop_consumer(self):
         """Stops the consumer task and the AIOKafkaConsumer object"""
+        self.logger.info("Stopping consumer...")
         if self._consumer_reader_task:
+            self.logger.info("Cancel consumer task...")
             self._consumer_reader_task.cancel()  # type: ignore
             with suppress(asyncio.exceptions.CancelledError):
                 await self._consumer_reader_task
+            self.logger.info("Stopping Kafka Consumer...")
             await self._consumer.stop()
 
     async def subscribe(self, channel: str) -> None:
@@ -64,6 +70,7 @@ class KafkaBackend(BaseBackend):
         :param channel:
         :type channel: str
         """
+        self.logger.info("Subscribing to %s", channel)
         async with self._lock:
             await self._stop_consumer()
             self._channels.add(channel)
@@ -137,7 +144,7 @@ class KafkaBackend(BaseBackend):
                 await consumer.seek_to_beginning(tp)
             else:
                 self.logger.debug(
-                    "Seeking channe %s to offset %d", channel, offset_meta - count
+                    "Seeking channel %s to offset %d", channel, offset_meta - count
                 )
                 consumer.seek(
                     tp, offset_meta - count

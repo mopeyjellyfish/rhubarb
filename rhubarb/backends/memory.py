@@ -10,7 +10,11 @@ from rhubarb.event import Event
 
 class MemoryBackend(BaseBackend):
     def __init__(self, url: str):
-        """A simple memory base queue, useful for testing and internal process communication"""
+        """A simple memory base queue, useful for testing and internal process communication
+
+        :param url: Not used.
+        :type url: str
+        """
         self._channels: set[str] = set()
         self._url: str = url
         self.logger: Logger = logging.getLogger(__name__)
@@ -26,13 +30,21 @@ class MemoryBackend(BaseBackend):
         pass
 
     async def subscribe(self, channel: str) -> None:
-        """Add the channel to the subscribed set"""
+        """Add the channel to the subscribed set
+
+        :param channel: the channel to subscribe to
+        :type channel: str
+        """
         self.logger.info("Subscribing to %s", channel)
         self._channels.add(channel)
         self.logger.info("Subscribed to %s", channel)
 
     async def unsubscribe(self, channel: str) -> None:
-        """Remove the channel to the subscribed set"""
+        """Remove the channel to the subscribed set
+
+        :param channel: the channel to subscribe to
+        :type channel: str
+        """
         self.logger.info("Unsubscribing from %s", channel)
         if channel in self._channels:
             self._channels.remove(channel)
@@ -40,7 +52,13 @@ class MemoryBackend(BaseBackend):
             self.logger.warning("Unknown channel %s", channel)
 
     async def publish(self, channel: str, message: Any) -> None:
-        """Create an ``Event`` and put onto the consumer queue"""
+        """Create an ``Event`` and put onto the consumer queue
+
+        :param channel: the channel to subscribe to
+        :type channel: str
+        :param message: the message to publish
+        :type message: str
+        """
         self.logger.debug("Publishing message %s to channel %s", message, channel)
         event = Event(channel=channel, message=message)
         await self._consumer.put(event)
