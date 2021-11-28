@@ -40,10 +40,10 @@ class AsyncPgBackend(BaseBackend):
         :param channel: the channel to subscribe to
         :type channel: str
         """
-        self.logger.info("Subscribing to %s", channel)
+        self.logger.info("Subscribing to '%s'", channel)
         await self._connection.add_listener(channel, self._listener)
         self._channels.add(channel)
-        self.logger.info("Subscribed to %s", channel)
+        self.logger.info("Subscribed to '%s'", channel)
 
     async def unsubscribe(self, channel: str) -> None:
         """Unsubscribe from the named channel
@@ -51,14 +51,14 @@ class AsyncPgBackend(BaseBackend):
         :param channel: the channel to unsubscribe to
         :type channel: str
         """
-        self.logger.info("Unsubscribing from %s", channel)
+        self.logger.info("Unsubscribing from '%s'", channel)
         if channel in self._channels:
             await self._connection.remove_listener(channel, self._listener)
             self._channels.remove(channel)
         else:
-            self.logger.warning("Unknown channel %s", channel)
+            self.logger.warning("Unknown channel '%s'", channel)
 
-        self.logger.info("Unsubscribed from %s", channel)
+        self.logger.info("Unsubscribed from '%s'", channel)
 
     async def publish(self, channel: str, message: str) -> None:
         """Publish the passed ``message`` to the provided ``channel``
@@ -68,7 +68,7 @@ class AsyncPgBackend(BaseBackend):
         :param message: the message to publish
         :type message: str
         """
-        self.logger.debug("Publishing %s to %s", message, channel)
+        self.logger.debug("Publishing %s to '%s'", message, channel)
         await self._connection.execute(
             "SELECT pg_notify($1, $2);", channel, str(message)
         )

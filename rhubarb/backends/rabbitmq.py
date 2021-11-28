@@ -43,9 +43,10 @@ class RabbitMQBackend(BaseBackend):
     async def subscribe(self, channel: str) -> None:
         """Adds the provided channel to the dict of ``self.channels``
 
-        :param channel:
+        :param channel: the name of the channel to subscribe to
         :type channel: str
         """
+        self.logger.info("Subscribing to '%s'", channel)
         if channel not in self._channels:
             rabbit_mq_channel = await self._connection.channel()
             queue: aio_pika.Queue = await rabbit_mq_channel.declare_queue(
@@ -53,6 +54,7 @@ class RabbitMQBackend(BaseBackend):
             )
             task: asyncio.Task[None] = asyncio.create_task(self._reader(queue))
             self._channels[channel] = task
+            self.logger.info("Subscribed to '%s'", channel)
 
     async def unsubscribe(self, channel: str) -> None:
         """Removes the channel from the ``channels`` and re-creates the consumer
@@ -60,15 +62,16 @@ class RabbitMQBackend(BaseBackend):
         :param channel: the channel to unsubscribe
         :type channel: str
         """
-        self.logger.info("Unsubscribing from %s", channel)
+        self.logger.info("Unsubscribing from '%s'", channel)
         task = self._channels.get(channel)
         if task:
             task.cancel()
             with suppress(asyncio.CancelledError):
                 await task
             del self._channels[channel]
+            self.logger.info("Unsubscribed from channel '%s'", channel)
         else:
-            self.logger.warning("Unknown channel %s", channel)
+            self.logger.warning("Unknown channel '%s'", channel)
 
     async def publish(self, channel: str, message: Any) -> None:
         """Using the created ``self._producer`` publish a message to the provided channel
@@ -83,7 +86,6 @@ class RabbitMQBackend(BaseBackend):
             aio_pika.Message(body=message.encode()),
             routing_key=channel,
         )
-        pass
 
     async def _reader(self, queue: aio_pika.Queue) -> None:
         """Read data from the passed queue object and put events into a queue to be read by the caller.
@@ -91,10 +93,15 @@ class RabbitMQBackend(BaseBackend):
         :param queue: The channel subscribed to
         :type queue: aio_pika.Queue
         """
+        self.logger.debug("Reader for channel '%s' started...", queue.name)
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:
                 async with message.process():
-                    event = Event(channel=queue.name, message=message.body.decode())
+                    message = message.body.decode()
+                    self.logger.debug(
+                        "Read message '%s' from channel '%s'", message, queue.name
+                    )
+                    event = Event(channel=queue.name, message=message)
                     self._listen_queue.put_nowait(event)
 
     async def next_event(self) -> Union[Event, None]:

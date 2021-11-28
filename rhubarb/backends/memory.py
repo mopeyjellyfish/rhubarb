@@ -35,9 +35,9 @@ class MemoryBackend(BaseBackend):
         :param channel: the channel to subscribe to
         :type channel: str
         """
-        self.logger.info("Subscribing to %s", channel)
+        self.logger.info("Subscribing to '%s'", channel)
         self._channels.add(channel)
-        self.logger.info("Subscribed to %s", channel)
+        self.logger.info("Subscribed to '%s'", channel)
 
     async def unsubscribe(self, channel: str) -> None:
         """Remove the channel to the subscribed set
@@ -45,11 +45,11 @@ class MemoryBackend(BaseBackend):
         :param channel: the channel to subscribe to
         :type channel: str
         """
-        self.logger.info("Unsubscribing from %s", channel)
+        self.logger.info("Unsubscribing from '%s'", channel)
         if channel in self._channels:
             self._channels.remove(channel)
         else:
-            self.logger.warning("Unknown channel %s", channel)
+            self.logger.warning("Unknown channel '%s'", channel)
 
     async def publish(self, channel: str, message: Any) -> None:
         """Create an ``Event`` and put onto the consumer queue
@@ -59,7 +59,7 @@ class MemoryBackend(BaseBackend):
         :param message: the message to publish
         :type message: str
         """
-        self.logger.debug("Publishing message %s to channel %s", message, channel)
+        self.logger.debug("Publishing message %s to channel '%s'", message, channel)
         event = Event(channel=channel, message=message)
         await self._consumer.put(event)
 

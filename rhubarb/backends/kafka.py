@@ -47,11 +47,12 @@ class KafkaBackend(BaseBackend):
         self._consumer = AIOKafkaConsumer(
             *self._channels, bootstrap_servers=self._servers, auto_offset_reset="latest"
         )
-        self.logger.debug("Starting Kafka consumer...")
+        self.logger.info("Starting Kafka consumer...")
         await self._consumer.start()
         self._consumer_reader_task: asyncio.Task[None] = asyncio.create_task(  # type: ignore
             self._reader()
         )
+        self.logger.info("Consumer started")
 
     async def _stop_consumer(self):
         """Stops the consumer task and the AIOKafkaConsumer object"""
@@ -75,6 +76,7 @@ class KafkaBackend(BaseBackend):
             await self._stop_consumer()
             self._channels.add(channel)
             await self._start_consumer()
+        self.logger.info("Subscribed to %s", channel)
 
     async def unsubscribe(self, channel: str) -> None:
         """Removes the channel from the ``channels`` and re-creates the consumer
@@ -89,6 +91,7 @@ class KafkaBackend(BaseBackend):
                 self._channels.remove(channel)
                 if self._channels:
                     await self._start_consumer()
+                self.logger.info("Unsubscribed from %s", channel)
             else:
                 self.logger.warning("Unknown channel %s", channel)
 
@@ -105,6 +108,7 @@ class KafkaBackend(BaseBackend):
 
     async def _reader(self) -> None:
         """Read data from the consumer and put events into a queue to be read by the caller."""
+        self.logger.debug("Reader started...")
         async for message in self._consumer:
             self.logger.debug(
                 "Read message %s from channel: %s",
@@ -136,7 +140,7 @@ class KafkaBackend(BaseBackend):
         partitions = {
             TopicPartition(channel, part)
             for part in consumer.partitions_for_topic(channel)
-        }
+        }  # get all the partitions for the topic (channel) which we are subscribing to
         end_offsets = await consumer.end_offsets(partitions)  # get the lastest offset
         for tp, offset_meta in end_offsets.items():
             if offset_meta <= count:  # can't set and offset less than 0
@@ -163,7 +167,7 @@ class KafkaBackend(BaseBackend):
     async def history(self, channel: str, count: int) -> AsyncIterator[Event]:
         """Used by Rhubarb to retrieve a list of events"""
         if count > 0:
-            self.logger.info("Reading the last %s events from '%s'", count, channel)
+            self.logger.info("Reading the last %d events from '%s'", count, channel)
             consumer = AIOKafkaConsumer(
                 channel, bootstrap_servers=self._servers, auto_offset_reset="latest"
             )

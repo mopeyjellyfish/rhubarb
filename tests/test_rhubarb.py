@@ -4,6 +4,7 @@ from contextlib import suppress
 from logging import Logger
 from multiprocessing import Process
 
+from anyio import Event
 from hypothesis import given
 from hypothesis import strategies as st
 from pytest import fixture, mark, raises
@@ -174,7 +175,7 @@ class TestRhubarb:
         await queue.connect()
         await queue.connect()
         assert (
-            "Already connected 'True', was connect called more than once?"
+            "Already connected 'True', was 'connect' called more than once?"
             in caplog.text
         )
         await queue.disconnect()
@@ -225,15 +226,15 @@ class TestRhubarb:
         assert "test-channel" not in queue._subscribers
 
     async def test_cancel_coroutine_subscriber(self, queue):
-        async def subscriber():
+        async def subscriber(subscribed_event):
             async with queue.subscribe("test-channel") as subscriber:
+                subscribed_event.set()
                 async for _ in subscriber:  # Iterate the subscriber to produce a `asyncio.exceptions.CancelledError` when the task is cancelled
                     pass
 
-        task = asyncio.create_task(subscriber())
-        await asyncio.sleep(0)  # yield control to the event bus to begin subscribe
-        await asyncio.sleep(0)  # yield control to the event bus to complete subscribe
-        await asyncio.sleep(0)  # yield control to the event bus to iterate
+        subscribed_event = Event()
+        task = asyncio.create_task(subscriber(subscribed_event))
+        await subscribed_event.wait()
         task.cancel()
         with suppress(
             asyncio.exceptions.CancelledError

@@ -71,8 +71,8 @@ class Rhubarb:
         :param url: URL for the backend service
         :type url: str
         """
-        backend_cls = self.get_backend(url)
         self.logger: Logger = logging.getLogger(__name__)
+        backend_cls = self.get_backend(url)
         self._backend: BaseBackend = backend_cls(url)
         self._serializer: Optional[Callable[[Any], str]] = serializer
         self._deserializer: Optional[Callable[[str], Any]] = deserializer
@@ -82,7 +82,7 @@ class Rhubarb:
 
     def get_backend(self, url: str) -> BaseBackend:
         parsed_url = urlparse(url)
-
+        self.logger.info("Loading backend for: '%s", parsed_url.scheme)
         if parsed_url.scheme == "redis":
             from rhubarb.backends.redis import RedisBackend
 
@@ -125,14 +125,16 @@ class Rhubarb:
                 await self._backend.connect()
                 self._reader_task = asyncio.create_task(self._reader())
                 self._connected = True
+                self.logger.info("Connected to backend!")
             else:
                 self.logger.warning(
-                    "Already connected '%s', was connect called more than once?",
+                    "Already connected '%s', was 'connect' called more than once?",
                     self._connected,
                 )
 
     async def _close_subscriptions(self) -> None:
         """Close queues for subscribers"""
+        self.logger.debug("Closing all subscriptions...")
         for subscribers in self._subscribers.values():
             for queue in subscribers:
                 await queue.put(None)
@@ -152,6 +154,7 @@ class Rhubarb:
             await self._close_subscriptions()  # close subscriptions so that subscribers to the event bus stop waiting for events
             await self._backend.disconnect()
             self._connected = False
+        self.logger.info("Disonnected from backend")
 
     async def __aenter__(self) -> "Rhubarb":
         """Allows for the queue to be used in a context manager"""
@@ -172,6 +175,7 @@ class Rhubarb:
         """
         _message = None
         if self._serializer:  # if a serializer has been provided then call
+            self.logger.debug("Serializing message")
             _message = self._serializer(message)
         else:
             _message = message
@@ -225,7 +229,7 @@ class Rhubarb:
                     "Already subscribed to '%s', appending queue", channel
                 )
                 self._subscribers[channel].add(queue)
-
+        self.logger.debug("Current subscribers %s", " ".join(self._subscribers.keys()))
         return queue
 
     async def _unsubscribe(
@@ -245,8 +249,12 @@ class Rhubarb:
             if (subscriber := self._subscribers.get(channel)) is not None:
                 subscriber.remove(queue)
                 if not subscriber:
+                    self.logger.debug(
+                        "No more subscriptions, unsubscribing from backend."
+                    )
                     del self._subscribers[channel]
                     await self._backend.unsubscribe(channel)
+        self.logger.debug("Subscribed to %s", " ".join(self._subscribers.keys()))
 
     @asynccontextmanager
     async def subscribe(
@@ -260,7 +268,9 @@ class Rhubarb:
         :type history: int
         """
         queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
-
+        self.logger.info(
+            "Subscribing to '%s', getting %d historic events", channel, history
+        )
         try:
             await self._subscribe(channel, queue, history)
             yield Subscriber(queue, self._deserializer)

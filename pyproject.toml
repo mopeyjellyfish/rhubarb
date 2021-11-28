@@ -38,6 +38,7 @@ aioredis = "^2.0.0"
 aiokafka = "^0.7.2"
 asyncpg = ">=0.24,<0.26"
 aio-pika = "^6.8.0"
+anyio = "^3.4.0"
 
 [tool.poetry.extras]
 redis = ["aioredis"]
