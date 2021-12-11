@@ -10,23 +10,6 @@ jobs:
         python-version: ["3.9"]
 
     services:
-        redis:
-          image: redis:alpine
-          ports:
-          - 6379:6379
-        rabbitmq:
-          image: rabbitmq:latest
-          ports:
-            - 5672:5672
-        postgres:
-          image: postgres:14
-          env:
-            POSTGRES_DB: rhubarb
-            POSTGRES_PASSWORD: postgres
-            POSTGRES_HOST_AUTH_METHOD: trust
-            POSTGRES_USER: postgres
-          ports:
-          - 5432:5432
         zookeeper:
           image: confluentinc/cp-zookeeper
           ports:
@@ -48,6 +31,23 @@ jobs:
             KAFKA_BROKER_ID: 1
             ALLOW_PLAINTEXT_LISTENER: yes
           options: --hostname kafka
+        redis:
+          image: redis:alpine
+          ports:
+          - 6379:6379
+        rabbitmq:
+          image: rabbitmq:latest
+          ports:
+            - 5672:5672
+        postgres:
+          image: postgres:14
+          env:
+            POSTGRES_DB: rhubarb
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_HOST_AUTH_METHOD: trust
+            POSTGRES_USER: postgres
+          ports:
+          - 5432:5432
 
     steps:
     - uses: actions/checkout@v2
