@@ -48,7 +48,7 @@ rabbitmq = ["aio-pika"]
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.1"
-black = {version = "^21.11b1", allow-prereleases = true}
+black = {version = "^21.12b0", allow-prereleases = true}
 darglint = "^1.8.0"
 isort = {extras = ["colors"], version = "^5.9.3"}
 mypy = "^0.920"
