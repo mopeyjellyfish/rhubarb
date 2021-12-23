@@ -25,4 +25,4 @@
 - [ ] I've read the [`CONTRIBUTING.md`](https://github.com/mopeyjellyfish/rhubarb/blob/master/CONTRIBUTING.md) guide.
 - [ ] I've updated the code style using `make codestyle`.
 - [ ] I've written tests for all new methods and classes that I created.
-- [ ] I've written the docstring in Google format for all the methods and classes that I used.
+- [ ] I've written the docstring in Sphinx format for all the methods and classes that I used.
