@@ -325,7 +325,7 @@ gitdb = ">=4.0.1,<5"
 
 [[package]]
 name = "hypothesis"
-version = "6.34.2"
+version = "6.35.1"
 description = "A library for property-based testing"
 category = "dev"
 optional = false
@@ -998,7 +998,7 @@ redis = ["aioredis"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "91bdd5d01e604d9fb44ee889dfae9902fb79a2c358888c8ececb9b6836923367"
+content-hash = "0e989777a9d1f3fbbd69a2d84d30c79102d708a269b953e1ed89b7832533069e"
 
 [metadata.files]
 aio-pika = [
@@ -1198,8 +1198,8 @@ gitpython = [
     {file = "GitPython-3.1.25.tar.gz", hash = "sha256:b923e8952c2fe0d70b129fddd8511acc90b3070c8dddb20d86ca9911a5d0c248"},
 ]
 hypothesis = [
-    {file = "hypothesis-6.34.2-py3-none-any.whl", hash = "sha256:803792d416ff71307d775fe760e2b2f07ca302a2c941b576629668092b9f3e3d"},
-    {file = "hypothesis-6.34.2.tar.gz", hash = "sha256:317f8d2f670fa69e258ab43e21c2befd413c559e386581f7e9641a80460b1063"},
+    {file = "hypothesis-6.35.1-py3-none-any.whl", hash = "sha256:536b928d14934809d0da676579436aaa379b06df84408b4c154412e8fd4e1b91"},
+    {file = "hypothesis-6.35.1.tar.gz", hash = "sha256:8533812bd277925b0c594ef2681dc8f4289a7b6be0169cc2df295d096c7cd783"},
 ]
 identify = [
     {file = "identify-2.4.2-py2.py3-none-any.whl", hash = "sha256:67c1e66225870dce721228176637a8ef965e8dd58450bcc7592249d0dfc4da6c"},
