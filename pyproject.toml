@@ -37,7 +37,7 @@ python = "^3.9"
 aioredis = "^2.0.0"
 aiokafka = "^0.7.2"
 asyncpg = ">=0.24,<0.26"
-aio-pika = "^6.8.0"
+aio-pika = ">=6.8,<8.0"
 anyio = "^3.4.0"
 
 [tool.poetry.extras]
@@ -66,7 +66,7 @@ pytest-cov = "^3.0.0"
 asyncpg = ">=0.24,<0.26"
 aioredis = "^2.0.0"
 aiokafka = "^0.7.2"
-aio-pika = "^6.8.0"
+aio-pika = ">=6.8,<8.0"
 hypothesis = "^6.34.2"
 
 [tool.black]
