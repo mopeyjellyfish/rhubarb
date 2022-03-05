@@ -4,6 +4,7 @@ from contextlib import suppress
 from logging import Logger
 from multiprocessing import Process
 
+import pytest_asyncio
 from anyio import Event
 from hypothesis import given
 from hypothesis import strategies as st
@@ -14,25 +15,25 @@ from rhubarb.backends.base import BaseBackend
 from rhubarb.backends.exceptions import HistoryError
 
 
-@fixture
+@pytest_asyncio.fixture
 async def queue(URL):
     async with Rhubarb(URL) as events:
         yield events
 
 
-@fixture
+@pytest_asyncio.fixture
 async def subscriber(queue):
     async with queue.subscribe("test-channel") as subscriber:
         yield subscriber
 
 
-@fixture
+@pytest_asyncio.fixture
 async def queue_json(URL):
     async with Rhubarb(URL, serializer=json.dumps, deserializer=json.loads) as events:
         yield events
 
 
-@fixture
+@pytest_asyncio.fixture
 async def subscriber_json(queue_json):
     async with queue_json.subscribe("test-channel") as subscriber:
         yield subscriber

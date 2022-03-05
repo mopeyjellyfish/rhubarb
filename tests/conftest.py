@@ -3,6 +3,7 @@ from typing import Generator
 import asyncio
 from asyncio.events import AbstractEventLoop
 
+import pytest_asyncio
 from pytest import fixture
 
 
@@ -44,7 +45,7 @@ def URL(request):
     return request.param
 
 
-@fixture(scope="session", autouse=True)
+@pytest_asyncio.fixture(scope="session", autouse=True)
 def event_loop() -> Generator[AbstractEventLoop, None, None]:
     """Return the running event loop.
 

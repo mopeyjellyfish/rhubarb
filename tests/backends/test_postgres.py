@@ -2,13 +2,14 @@ from typing import AsyncGenerator
 
 import asyncio
 
+import pytest_asyncio
 from pytest import fixture, mark, raises
 
 from rhubarb.backends.postgres import AsyncPgBackend
 from rhubarb.event import Event
 
 
-@fixture
+@pytest_asyncio.fixture
 async def asyncpg(POSTGRES_URL: str) -> AsyncGenerator[Event, None]:
     asyncpg_backend = AsyncPgBackend(url=POSTGRES_URL)
     await asyncpg_backend.connect()
@@ -16,17 +17,18 @@ async def asyncpg(POSTGRES_URL: str) -> AsyncGenerator[Event, None]:
     await asyncpg_backend.disconnect()
 
 
+def test_asyncpg_queue(asyncpg, POSTGRES_URL):
+    assert hasattr(asyncpg, "connect")
+    assert hasattr(asyncpg, "disconnect")
+    assert hasattr(asyncpg, "subscribe")
+    assert hasattr(asyncpg, "unsubscribe")
+    assert hasattr(asyncpg, "publish")
+    assert hasattr(asyncpg, "next_event")
+    assert asyncpg.url == POSTGRES_URL
+
+
 @mark.asyncio
 class TestAsyncPgBackend:
-    def test_asyncpg_queue(self, asyncpg, POSTGRES_URL):
-        assert hasattr(asyncpg, "connect")
-        assert hasattr(asyncpg, "disconnect")
-        assert hasattr(asyncpg, "subscribe")
-        assert hasattr(asyncpg, "unsubscribe")
-        assert hasattr(asyncpg, "publish")
-        assert hasattr(asyncpg, "next_event")
-        assert asyncpg.url == POSTGRES_URL
-
     async def test_asyncpg_connect_disconnect(self, POSTGRES_URL):
         asyncpg = AsyncPgBackend(url=POSTGRES_URL)
         await asyncpg.connect()

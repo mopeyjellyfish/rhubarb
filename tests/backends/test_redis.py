@@ -2,6 +2,7 @@ from typing import AsyncGenerator
 
 import asyncio
 
+import pytest_asyncio
 from aioredis.exceptions import ConnectionError
 from pytest import fixture, mark, raises
 
@@ -9,7 +10,7 @@ from rhubarb.backends.redis import RedisBackend
 from rhubarb.event import Event
 
 
-@fixture
+@pytest_asyncio.fixture
 async def redis(REDIS_URL: str) -> AsyncGenerator[Event, None]:
     redis_backend = RedisBackend(url=REDIS_URL)
     await redis_backend.connect()
@@ -17,17 +18,18 @@ async def redis(REDIS_URL: str) -> AsyncGenerator[Event, None]:
     await redis_backend.disconnect()
 
 
+def test_redis_queue(redis, REDIS_URL):
+    assert hasattr(redis, "connect")
+    assert hasattr(redis, "disconnect")
+    assert hasattr(redis, "subscribe")
+    assert hasattr(redis, "unsubscribe")
+    assert hasattr(redis, "publish")
+    assert hasattr(redis, "next_event")
+    assert redis.url == REDIS_URL
+
+
 @mark.asyncio
 class TestRedisBackend:
-    def test_redis_queue(self, redis, REDIS_URL):
-        assert hasattr(redis, "connect")
-        assert hasattr(redis, "disconnect")
-        assert hasattr(redis, "subscribe")
-        assert hasattr(redis, "unsubscribe")
-        assert hasattr(redis, "publish")
-        assert hasattr(redis, "next_event")
-        assert redis.url == REDIS_URL
-
     async def test_redis_connect_disconnect(self, REDIS_URL):
         redis = RedisBackend(url=REDIS_URL)
         await redis.connect()

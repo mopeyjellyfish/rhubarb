@@ -2,13 +2,14 @@ from typing import AsyncGenerator
 
 import asyncio
 
+import pytest_asyncio
 from pytest import fixture, mark, raises
 
 from rhubarb.backends.kafka import KafkaBackend
 from rhubarb.event import Event
 
 
-@fixture
+@pytest_asyncio.fixture
 async def kafka(KAFKA_URL: str) -> AsyncGenerator[Event, None]:
     kafka_backend = KafkaBackend(url=KAFKA_URL)
     await kafka_backend.connect()
@@ -16,16 +17,17 @@ async def kafka(KAFKA_URL: str) -> AsyncGenerator[Event, None]:
     await kafka_backend.disconnect()
 
 
+def test_kafka_queue(kafka):
+    assert hasattr(kafka, "connect")
+    assert hasattr(kafka, "disconnect")
+    assert hasattr(kafka, "subscribe")
+    assert hasattr(kafka, "unsubscribe")
+    assert hasattr(kafka, "publish")
+    assert hasattr(kafka, "next_event")
+
+
 @mark.asyncio
 class TestKafkaBackend:
-    def test_kafka_queue(self, kafka, KAFKA_URL):
-        assert hasattr(kafka, "connect")
-        assert hasattr(kafka, "disconnect")
-        assert hasattr(kafka, "subscribe")
-        assert hasattr(kafka, "unsubscribe")
-        assert hasattr(kafka, "publish")
-        assert hasattr(kafka, "next_event")
-
     async def test_kafka_connect_disconnect(self, KAFKA_URL):
         kafka = KafkaBackend(url=KAFKA_URL)
         await kafka.connect()

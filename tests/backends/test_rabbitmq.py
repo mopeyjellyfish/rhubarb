@@ -2,13 +2,14 @@ from typing import AsyncGenerator
 
 import asyncio
 
+import pytest_asyncio
 from pytest import fixture, mark, raises
 
 from rhubarb.backends.rabbitmq import RabbitMQBackend
 from rhubarb.event import Event
 
 
-@fixture
+@pytest_asyncio.fixture
 async def rabbit_mq(RABBIT_MQ_URL: str) -> AsyncGenerator[Event, None]:
     rabbit_mq_backend = RabbitMQBackend(url=RABBIT_MQ_URL)
     await rabbit_mq_backend.connect()
@@ -16,17 +17,18 @@ async def rabbit_mq(RABBIT_MQ_URL: str) -> AsyncGenerator[Event, None]:
     await rabbit_mq_backend.disconnect()
 
 
+def test_rabbit_mq_queue(rabbit_mq, RABBIT_MQ_URL):
+    assert hasattr(rabbit_mq, "connect")
+    assert hasattr(rabbit_mq, "disconnect")
+    assert hasattr(rabbit_mq, "subscribe")
+    assert hasattr(rabbit_mq, "unsubscribe")
+    assert hasattr(rabbit_mq, "publish")
+    assert hasattr(rabbit_mq, "next_event")
+    assert rabbit_mq._url == RABBIT_MQ_URL
+
+
 @mark.asyncio
 class TestRabbitMQBackend:
-    def test_rabbit_mq_queue(self, rabbit_mq, RABBIT_MQ_URL):
-        assert hasattr(rabbit_mq, "connect")
-        assert hasattr(rabbit_mq, "disconnect")
-        assert hasattr(rabbit_mq, "subscribe")
-        assert hasattr(rabbit_mq, "unsubscribe")
-        assert hasattr(rabbit_mq, "publish")
-        assert hasattr(rabbit_mq, "next_event")
-        assert rabbit_mq._url == RABBIT_MQ_URL
-
     async def test_rabbit_mq_connect_disconnect(self, RABBIT_MQ_URL):
         rabbit_mq = RabbitMQBackend(url=RABBIT_MQ_URL)
         await rabbit_mq.connect()

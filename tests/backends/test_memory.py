@@ -2,6 +2,7 @@ from typing import AsyncGenerator
 
 import asyncio
 
+import pytest_asyncio
 from aioredis.exceptions import ConnectionError
 from pytest import fixture, mark, raises
 
@@ -9,7 +10,7 @@ from rhubarb.backends.memory import MemoryBackend
 from rhubarb.event import Event
 
 
-@fixture
+@pytest_asyncio.fixture
 async def memory(MEMORY_URL: str) -> AsyncGenerator[Event, None]:
     memory_backend = MemoryBackend(MEMORY_URL)
     await memory_backend.connect()
@@ -17,17 +18,18 @@ async def memory(MEMORY_URL: str) -> AsyncGenerator[Event, None]:
     await memory_backend.disconnect()
 
 
+def test_memory_queue(memory):
+    assert hasattr(memory, "connect")
+    assert hasattr(memory, "disconnect")
+    assert hasattr(memory, "subscribe")
+    assert hasattr(memory, "unsubscribe")
+    assert hasattr(memory, "publish")
+    assert hasattr(memory, "next_event")
+    assert memory._channels == set()
+
+
 @mark.asyncio
 class TestMemoryBackend:
-    def test_redis_queue(self, memory):
-        assert hasattr(memory, "connect")
-        assert hasattr(memory, "disconnect")
-        assert hasattr(memory, "subscribe")
-        assert hasattr(memory, "unsubscribe")
-        assert hasattr(memory, "publish")
-        assert hasattr(memory, "next_event")
-        assert memory._channels == set()
-
     async def test_memory_connect_disconnect(self, MEMORY_URL):
         memory = MemoryBackend(MEMORY_URL)
         await memory.connect()
