@@ -1,17 +1,17 @@
 [[package]]
 name = "aio-pika"
-version = "6.8.0"
+version = "7.1.0"
 description = "Wrapper for the aiormq for asyncio and humans."
 category = "main"
 optional = false
-python-versions = ">3.5.*, <4"
+python-versions = ">3.6, <4"
 
 [package.dependencies]
-aiormq = ">=3.2.3,<4"
+aiormq = ">=6.2.3,<6.3.0"
 yarl = "*"
 
 [package.extras]
-develop = ["aiomisc (>=10.1.6,<10.2.0)", "async-generator", "coverage (!=4.3)", "coveralls", "pylava", "pytest", "pytest-cov", "shortuuid", "nox", "sphinx", "sphinx-autobuild", "timeout-decorator", "tox (>=2.4)"]
+develop = ["aiomisc (>=15.6.8,<15.7.0)", "coverage (!=4.3)", "coveralls", "pylava", "pytest", "pytest-cov", "shortuuid", "nox", "sphinx", "sphinx-autobuild", "timeout-decorator", "tox (>=2.4)"]
 
 [[package]]
 name = "aiokafka"
@@ -44,18 +44,18 @@ hiredis = ["hiredis (>=1.0)"]
 
 [[package]]
 name = "aiormq"
-version = "3.3.1"
+version = "6.2.3"
 description = "Pure python AMQP asynchronous client library"
 category = "main"
 optional = false
-python-versions = ">3.5.*"
+python-versions = ">=3.6"
 
 [package.dependencies]
-pamqp = "2.3.0"
+pamqp = {version = "3.1.0", markers = "python_version >= \"3.7\""}
 yarl = "*"
 
 [package.extras]
-develop = ["aiomisc (>=11.0,<12.0)", "async-generator", "coverage (!=4.3)", "coveralls", "pylava", "pytest", "pytest-cov", "tox (>=2.4)"]
+develop = ["aiomisc (>=11.0,<12.0)", "coverage (!=4.3)", "coveralls", "pylava", "pytest", "pytest-cov", "tox (>=2.4)"]
 
 [[package]]
 name = "alabaster"
@@ -524,14 +524,15 @@ pyparsing = ">=2.0.2,<3.0.5 || >3.0.5"
 
 [[package]]
 name = "pamqp"
-version = "2.3.0"
+version = "3.1.0"
 description = "RabbitMQ Focused AMQP low-level library"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.7"
 
 [package.extras]
-codegen = ["lxml"]
+codegen = ["lxml", "requests", "yapf"]
+testing = ["coverage", "flake8", "flake8-comprehensions", "flake8-deprecated", "flake8-import-order", "flake8-print", "flake8-quotes", "flake8-rst-docstrings", "flake8-tuple", "yapf"]
 
 [[package]]
 name = "pathspec"
@@ -1029,12 +1030,12 @@ redis = ["aioredis"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "836d6b0d58c708c23862f2ec0eb9b98b45483aac136884ea5e775c4400f43396"
+content-hash = "0fef50972ca6ba6fe3eedbbcf17e2f7c554d5977e672b98812cfbc47bc171a14"
 
 [metadata.files]
 aio-pika = [
-    {file = "aio-pika-6.8.0.tar.gz", hash = "sha256:1d4305a5f78af3857310b4fe48348cdcf6c097e0e275ea88c2cd08570531a369"},
-    {file = "aio_pika-6.8.0-py3-none-any.whl", hash = "sha256:e69afef8695f47c5d107bbdba21bdb845d5c249acb3be53ef5c2d497b02657c0"},
+    {file = "aio-pika-7.1.0.tar.gz", hash = "sha256:dec14ddb7e22d04ddc46f656899f7f3a592431cb618719aa7e03dfe85311be17"},
+    {file = "aio_pika-7.1.0-py3-none-any.whl", hash = "sha256:f7803c6b5ced5fe8b4c2119065c213283e3bccb035c13d88b0c256bbc3fe6cb6"},
 ]
 aiokafka = [
     {file = "aiokafka-0.7.2-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:b19f077e12fe23e359f7a7dca9baf8532c63f4c8149703ce4c56de372d17e26c"},
@@ -1064,8 +1065,8 @@ aioredis = [
     {file = "aioredis-2.0.0.tar.gz", hash = "sha256:3a2de4b614e6a5f8e104238924294dc4e811aefbe17ddf52c04a93cbf06e67db"},
 ]
 aiormq = [
-    {file = "aiormq-3.3.1-py3-none-any.whl", hash = "sha256:e584dac13a242589aaf42470fd3006cb0dc5aed6506cbd20357c7ec8bbe4a89e"},
-    {file = "aiormq-3.3.1.tar.gz", hash = "sha256:8218dd9f7198d6e7935855468326bbacf0089f926c70baa8dd92944cb2496573"},
+    {file = "aiormq-6.2.3-py3-none-any.whl", hash = "sha256:95f0da57edd55f214a2e6c5b7ac98fa58a7c33911acd0d3315e86926b2dd2605"},
+    {file = "aiormq-6.2.3.tar.gz", hash = "sha256:db6c1e6e384f1d4dafe19f8df70c6dfc994932b40f4e542690016023ff8e952b"},
 ]
 alabaster = [
     {file = "alabaster-0.7.12-py2.py3-none-any.whl", hash = "sha256:446438bdcca0e05bd45ea2de1668c1d9b032e1a9154c2c259092d77031ddd359"},
@@ -1463,8 +1464,7 @@ packaging = [
     {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},
 ]
 pamqp = [
-    {file = "pamqp-2.3.0-py2.py3-none-any.whl", hash = "sha256:2f81b5c186f668a67f165193925b6bfd83db4363a6222f599517f29ecee60b02"},
-    {file = "pamqp-2.3.0.tar.gz", hash = "sha256:5cd0f5a85e89f20d5f8e19285a1507788031cfca4a9ea6f067e3cf18f5e294e8"},
+    {file = "pamqp-3.1.0.tar.gz", hash = "sha256:e4f0886d72c6166637a5513626148bf5a7e818073a558980e9aaed8b4ccf30da"},
 ]
 pathspec = [
     {file = "pathspec-0.9.0-py2.py3-none-any.whl", hash = "sha256:7d15c4ddb0b5c802d161efc417ec1a2558ea2653c2e8ad9c19098201dc1c993a"},
