@@ -1,16 +1,21 @@
 import asyncio
 import json
+import random
+from asyncio.exceptions import TimeoutError
 from contextlib import suppress
 from logging import Logger
 from multiprocessing import Process
 
+import pytest
 import pytest_asyncio
 from anyio import Event
+from async_timeout import timeout
 from hypothesis import given
 from hypothesis import strategies as st
+from pyexpat.errors import messages
 from pytest import fixture, mark, raises
 
-from rhubarb._core import Rhubarb, UnknownBackend, Unsubscribed
+from rhubarb._core import Rhubarb, SubscribeError, UnknownBackend, Unsubscribed
 from rhubarb.backends.base import BaseBackend
 from rhubarb.backends.exceptions import HistoryError
 
@@ -267,3 +272,47 @@ class TestRhubarb:
             await asyncio.sleep(0.5)  # let the process start up
             await queue.publish("test-channel", "test")
             p.join()
+
+    async def test_group_subscribe(self, URL):
+        expected_messages = list(str(i) for i in range(10))
+
+        async def read_subscriptions(subscriber):
+            tasks = []
+            with suppress(asyncio.exceptions.TimeoutError):
+                async with timeout(1):
+                    async for event in subscriber:
+                        tasks.append(event)
+                        await asyncio.sleep(0)
+            return tasks
+
+        if "redis" in URL:  # currently only supported by redis
+            async with Rhubarb(URL) as queue_1, Rhubarb(URL) as queue_2:
+                async with queue_1.subscribe(
+                    "TEST-GROUP-CHANNEL", group_name="TEST_GROUP", consumer_name="sub_1"
+                ) as subscriber_1, queue_2.subscribe(
+                    "TEST-GROUP-CHANNEL", group_name="TEST_GROUP", consumer_name="sub_2"
+                ) as subscriber_2:
+                    await asyncio.sleep(0)
+                    for message in expected_messages:
+                        await queue_1.publish("TEST-GROUP-CHANNEL", message)
+                    events = await asyncio.gather(
+                        read_subscriptions(subscriber_1),
+                        read_subscriptions(subscriber_2),
+                    )
+                    read_messages = [event.message for event in events[0]] + [
+                        event.message for event in events[1]
+                    ]
+                    read_messages.sort()
+                    assert read_messages == expected_messages
+        else:
+            pytest.xfail(f"{URL} backend not supported")
+
+    async def test_group_subscribe_errors(self, queue_json):
+        """If specifying a group but not a name or a name but not a group that an error occurs"""
+        with raises(SubscribeError):
+            async with queue_json.subscribe("TEST-GROUP-CHANNEL", group_name="group"):
+                pass
+
+        with raises(SubscribeError):
+            async with queue_json.subscribe("TEST-GROUP-CHANNEL", consumer_name="name"):
+                pass

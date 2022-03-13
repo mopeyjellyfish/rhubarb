@@ -70,6 +70,17 @@ async with Rhubarb("redis://localhost:6379/0", serializer=json.dumps, deserializ
             await websocket.send_text(event.message)
 ```
 
+### Group subscribing (at-most-once processing)
+
+```python
+async with Rhubarb("redis://localhost:6379/0", serializer=json.dumps, deserializer=json.loads) as events:
+    async with events.subscribe(
+        "TEST-GROUP-CHANNEL", group_name="TEST_GROUP", consumer_name="sub_1"
+    ) as subscriber_1:
+        async for event in subscriber:
+            await process_job(event)
+```
+
 ## Example
 
 A minimal working example can be found in [example](https://github.com/mopeyjellyfish/rhubarb/blob/main/example/app.py) directory.

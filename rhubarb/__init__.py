@@ -4,10 +4,10 @@
 import sys
 from importlib import metadata as importlib_metadata
 
-from ._core import Rhubarb, UnknownBackend, Unsubscribed
+from ._core import Rhubarb, SubscribeError, UnknownBackend, Unsubscribed
 from .event import Event
 
-__all__ = ["Rhubarb", "Event", "Unsubscribed", "UnknownBackend"]
+__all__ = ["Rhubarb", "Event", "Unsubscribed", "UnknownBackend", "SubscribeError"]
 
 
 def get_version() -> str:

@@ -1,5 +1,6 @@
 from typing import Any, AsyncIterator, List, Union
 
+import asyncio
 from abc import ABC, abstractmethod
 
 from rhubarb.event import Event
@@ -38,6 +39,42 @@ class BaseBackend(ABC):
         :param channel: name of the channel in the queue to subscribe to
         :type channel: str
         """
+
+    async def group_subscribe(
+        self,
+        channel: str,
+        group_name: str,
+        consumer_name: str,
+        queue: asyncio.Queue[Union[Event, None]],
+    ):
+        """Called to subscribe to a channel as part of a consumer (``consumer_name``) within a group (``groupd_name``)
+
+        :param channel: name of the channel in the queue to subscribe to
+        :type channel: str
+        :param group_name: the name of the group this subscriber will join
+        :type group_name: str
+        :param consumer_name: the unique name in the group for this subscriber
+        :type consumer_name: str
+        """
+        raise NotImplementedError()
+
+    async def group_unsubscribe(
+        self,
+        channel: str,
+        group_name: str,
+        consumer_name: str,
+        queue: asyncio.Queue[Union[Event, None]],
+    ):
+        """Called to unsubscribe from a channel based on the group name and consumer name
+
+        :param channel: name of the channel in the queue to subscribe to
+        :type channel: str
+        :param group_name: the name of the group this subscriber will join
+        :type group_name: str
+        :param consumer_name: the unique name in the group for this subscriber
+        :type consumer_name: str
+        """
+        raise NotImplementedError()
 
     @abstractmethod
     async def publish(self, channel: str, message: Any) -> None:

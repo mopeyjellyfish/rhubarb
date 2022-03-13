@@ -19,6 +19,10 @@ class UnknownBackend(Exception):
     pass
 
 
+class SubscribeError(Exception):
+    pass
+
+
 class Rhubarb:
     """An event bus class that abstracts access to different backend queues into a single ``asyncio.Queue``.
     This allows for updating the backend implementation of where events are subscribed from and published to without needing to change the code within each service that uses the queue.
@@ -34,7 +38,7 @@ class Rhubarb:
                 async for event in subscriber:
                     await websocket.send_text(event.message)
 
-    Its also possible to use the same class as a producer of events on the event bus
+    It's also possible to use the same class as a producer of events on the event bus
 
     .. code-block:: python
 
@@ -212,7 +216,9 @@ class Rhubarb:
         :param queue: new subscribers ``asyncio.Queue``
         :type queue: asyncio.Queue
         """
-        self.logger.debug("Subscribing to %s", channel)
+        self.logger.info(
+            "Subscribing to '%s', getting %d historic events", channel, history
+        )
         async with self._lock:  # ensure that only one co-routine mutates state at a time
             await self._get_history(channel, queue, count=history)
 
@@ -256,9 +262,68 @@ class Rhubarb:
                     await self._backend.unsubscribe(channel)
         self.logger.debug("Subscribed to %s", " ".join(self._subscribers.keys()))
 
+    async def _group_unsubscribe(
+        self,
+        channel: str,
+        queue: asyncio.Queue[Union[Event, None]],
+        group_name: str,
+        consumer_name: str,
+    ) -> None:
+        """Handles unsubscribing a single consumer from a group
+
+        Will always call the backend to unsubscribe
+
+        :param channel: channel name to subscribe to
+        :type channel: str
+        :param queue: Queue to remove from subscribers
+        :type queue: asyncio.Queue
+        :param group_name: the name of the group this subscriber will join
+        :type group_name: str
+        :param consumer_name: the unique name in the group for this subscriber
+        :type consumer_name: str
+        """
+        self.logger.info(
+            "Unsubscribing from '%s' group: '%s' consumer: '%s'",
+            channel,
+            group_name,
+            consumer_name,
+        )
+        # self._backend.group_unsubscribe()
+
+    async def _group_subscribe(
+        self,
+        channel: str,
+        queue: asyncio.Queue[Union[Event, None]],
+        group_name: str,
+        consumer_name: str,
+    ) -> asyncio.Queue[Union[Event, None]]:
+        """Subscribes a consumer to a group, will request the group to be created in the backend if required.
+
+        Will only subscribe the backend if the channel has not already been used.
+
+        :param channel: channel name to subscribe to
+        :type channel: str
+        :param queue: new subscribers ``asyncio.Queue``
+        :type queue: asyncio.Queue
+        """
+        self.logger.info(
+            "Subscribing to '%s' group: '%s' consumer: '%s'",
+            channel,
+            group_name,
+            consumer_name,
+        )
+        async with self._lock:  # ensure that only one co-routine mutates state at a time
+            await self._backend.group_subscribe(
+                channel, group_name, consumer_name, queue
+            )
+
     @asynccontextmanager
     async def subscribe(
-        self, channel: str, history: int = 0
+        self,
+        channel: str,
+        history: Optional[int] = 0,
+        group_name: Optional[str] = None,
+        consumer_name: Optional[str] = None,
     ) -> AsyncIterator["Subscriber"]:
         """A context manager that will yield a subscriber
 
@@ -266,16 +331,40 @@ class Rhubarb:
         :type channel: str
         :param history: the number of historical events to retrieve, defaults to 0
         :type history: int
+        :param group_name: the name of the group this subscriber will join
+        :type group_name: str
+        :param consumer_name: the unique name in the group for this subscriber
+        :type consumer_name: str
         """
+        if (group_name or consumer_name) and (
+            group_name is None or consumer_name is None
+        ):
+            raise SubscribeError(f"Must specify both 'group_name' and 'consumer_name'")
+
+        group_subscribe = group_name is not None and consumer_name is not None
+
         queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
-        self.logger.info(
-            "Subscribing to '%s', getting %d historic events", channel, history
-        )
         try:
-            await self._subscribe(channel, queue, history)
+            # branch here to create a different set of group subscribers, keyed on the group and consumer name
+            if group_subscribe:
+                self.logger.debug(
+                    "Group '%s' subscription to '%s' queue: '%s'",
+                    group_name,
+                    channel,
+                    id(queue),
+                )
+                await self._group_subscribe(channel, queue, group_name, consumer_name)
+            else:
+                await self._subscribe(channel, queue, history)
+
             yield Subscriber(queue, self._deserializer)
         finally:
-            await self._unsubscribe(channel, queue)
+            # handle clean up for group subscriber vs fan out subscriber
+            if group_subscribe:
+                await self._group_unsubscribe(channel, queue, group_name, consumer_name)
+            else:
+                await self._unsubscribe(channel, queue)
+
             self.logger.debug("Closing queue for %s channel", channel)
             await queue.put(None)
 
@@ -299,6 +388,7 @@ class Subscriber:
         try:
             while event := await self.get():
                 yield event
+                self._queue.task_done()
         except Unsubscribed:
             pass
 

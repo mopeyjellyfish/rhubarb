@@ -2,13 +2,18 @@ from typing import Any, AsyncIterator, List, Union
 
 import asyncio
 import logging
+from collections import namedtuple
 from contextlib import suppress
 from logging import Logger
+from time import sleep
 
 import aioredis
 
 from rhubarb.backends.base import BaseBackend
 from rhubarb.event import Event
+from tests.test_rhubarb import queue
+
+GroupConsumer = namedtuple("GroupConsumer", "group consumer")
 
 
 class RedisBackend(BaseBackend):
@@ -20,6 +25,9 @@ class RedisBackend(BaseBackend):
         """
         self.url: str = url
         self._channels: dict[str, asyncio.Task[None]] = {}  # the channels subscribed to
+        self._group_readers: dict[
+            str, dict[str, asyncio.Task[None]]
+        ] = {}  # hanndles many group readers
         self._channel_latest_id: dict[str, int] = {}
         self.logger: Logger = logging.getLogger(__name__)
 
@@ -40,6 +48,11 @@ class RedisBackend(BaseBackend):
         self.logger.info("Disconnecting from %s", self.url)
         for channel in list(self._channels.keys()):
             await self.unsubscribe(channel)
+
+        for channel in list(self._group_readers.keys()):
+            for consumer in list(self._group_readers[channel].keys()):
+                await self.group_unsubscribe(channel, consumer.group, consumer.consumer)
+
         self.logger.info("Disconnected from %s", self.url)
 
     async def subscribe(self, channel: str) -> None:
@@ -148,3 +161,165 @@ class RedisBackend(BaseBackend):
             for message_id, values in reversed(results):
                 yield Event(channel=channel, message=values["message"])
                 self._channel_latest_id[channel] = message_id
+
+    async def _group_reader(
+        self,
+        channel: str,
+        group_consumer: GroupConsumer,
+        queue: asyncio.Queue[Union[Event, None]],
+    ):
+        """A group reader will take a channel and group_consumer to consume messages that are put onto the queue
+        allowing for an at-most-once delivery of messages for a group of subscribers.
+
+        :param channel: The channel subscribed to
+        :type channel: str
+        :param group_consumer: The channel subscribed to
+        :type group_consumer: GroupConsumer
+        :param queue: The queue that the consumer is reading from
+        :type queue: asyncio.Queue
+        """
+        self.logger.info(
+            "Group Reader starting for channel '%s' group: '%s' consumer name: '%s'",
+            channel,
+            group_consumer.group,
+            group_consumer.consumer,
+        )
+        streams: dict[str, int] = {channel: ">"}
+        while True:
+            response = await self._redis.xreadgroup(
+                group_consumer.group, group_consumer.consumer, streams=streams, count=1
+            )
+            for stream_name, messages in response:
+                self.logger.debug(
+                    "Read %d messages for channel '%s' group '%s' consumer '%s'",
+                    len(messages),
+                    stream_name,
+                    group_consumer.group,
+                    group_consumer.consumer,
+                )
+                for message_id, values in messages:
+                    self.logger.debug(
+                        "Read message %s from channel '%s' Group '%s'  Consumer '%s', stream id '%s'",
+                        values["message"],
+                        stream_name,
+                        group_consumer.group,
+                        group_consumer.consumer,
+                        message_id,
+                    )
+                    event = Event(channel=stream_name, message=values["message"])
+                    queue.put_nowait(event)
+                    self.logger.debug(
+                        "Stream '%s' Consumer '%s' Group '%s' Waiting for processing... %s",
+                        stream_name,
+                        group_consumer.consumer,
+                        group_consumer.group,
+                        id(queue),
+                    )
+                    await queue.join()
+                    self.logger.debug(
+                        "Stream '%s' Consumer '%s' Group '%s' Queue finished... %s",
+                        stream_name,
+                        group_consumer.consumer,
+                        group_consumer.group,
+                        id(queue),
+                    )
+            if group_consumer not in self._group_readers.get(
+                channel
+            ):  # check if the group consumer has unsubscribed and break out
+                break
+            else:
+                await asyncio.sleep(0)
+
+    async def group_subscribe(
+        self,
+        channel: str,
+        group_name: str,
+        consumer_name: str,
+        queue: asyncio.Queue[Union[Event, None]],
+    ):
+        """Called to subscribe to a channel as part of a consumer (``consumer_name``) within a group (``groupd_name``)
+
+        :param channel: name of the channel in the queue to subscribe to
+        :type channel: str
+        :param group_name: the name of the group this subscriber will join
+        :type group_name: str
+        :param consumer_name: the unique name in the group for this subscriber
+        :type consumer_name: str
+        """
+        self.logger.info(
+            "Subscribing to '%s' with group '%s' consumer '%s'",
+            channel,
+            group_name,
+            consumer_name,
+        )
+        try:
+            await self._redis.xgroup_create(
+                name=channel, groupname=group_name, mkstream=True
+            )
+        except aioredis.ResponseError as e:
+            if str(e) != "BUSYGROUP Consumer Group name already exists":
+                raise
+
+        self.logger.info(
+            "Creating reader task on channel '%s' for group '%s' consumer '%s'",
+            channel,
+            group_name,
+            consumer_name,
+        )
+        if channel not in self._group_readers:
+            self._group_readers[channel] = {}
+
+        group_consumer = GroupConsumer(group_name, consumer_name)
+
+        if group_consumer in self._group_readers[channel]:
+            self.logger.warning(
+                "Consumer %s is already reading in group %s", consumer_name, group_name
+            )
+
+        self._group_readers[channel][group_consumer] = asyncio.create_task(
+            self._group_reader(channel, group_consumer, queue)
+        )
+        self.logger.info(
+            "Subscribed to '%s' in group '%s' as consumer '%s'",
+            channel,
+            group_name,
+            consumer_name,
+        )
+
+    async def group_unsubscribe(
+        self, channel: str, group_name: str, consumer_name: str
+    ):
+        """Called to unsubscribe from a channel based on the group name and consumer name
+
+        :param channel: name of the channel in the queue to subscribe to
+        :type channel: str
+        :param group_name: the name of the group this subscriber will join
+        :type group_name: str
+        :param consumer_name: the unique name in the group for this subscriber
+        :type consumer_name: str
+        """
+        self.logger.info("Unsubscribing from '%s'", channel)
+        if (channel := self._group_readers.get(channel)) is not None:
+            self.logger.debug(
+                "Cancelling task for '%s' channel group '%s' consumer '%s'",
+                channel,
+                group_name,
+                consumer_name,
+            )
+            group_consumer = GroupConsumer(group_name, consumer_name)
+            if (task := channel.get(group_consumer)) is not None:
+                self.logger.debug("Task %s", task)
+                task.cancel()
+                with suppress(asyncio.CancelledError):
+                    self.logger.debug("Waiting for '%s' reader task to cancel...", task)
+                    del channel[group_consumer]  # signal for the reader to close
+                    await task  # wait for the reader to close
+            else:
+                self.logger.warning(
+                    "Unknown group '%s' consumer '%s' combination for channel '%s'",
+                    group_name,
+                    consumer_name,
+                    channel,
+                )
+        else:
+            self.logger.warning("Unknown channel '%s'", channel)
