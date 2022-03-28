@@ -67,7 +67,7 @@ asyncpg = ">=0.24,<0.26"
 aioredis = "^2.0.0"
 aiokafka = "^0.7.2"
 aio-pika = "^6.8.0"
-hypothesis = "^6.39.3"
+hypothesis = "^6.39.6"
 
 [tool.black]
 # https://github.com/psf/black
