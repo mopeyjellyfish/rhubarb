@@ -45,7 +45,6 @@ class BaseBackend(ABC):
         channel: str,
         group_name: str,
         consumer_name: str,
-        queue: asyncio.Queue[Union[Event, None]],
     ):
         """Called to subscribe to a channel as part of a consumer (``consumer_name``) within a group (``groupd_name``)
 

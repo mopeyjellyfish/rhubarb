@@ -288,7 +288,9 @@ class Rhubarb:
             group_name,
             consumer_name,
         )
-        # self._backend.group_unsubscribe()
+        await self._backend.group_unsubscribe(
+            channel=channel, group_name=group_name, consumer_name=consumer_name
+        )
 
     async def _group_subscribe(
         self,
