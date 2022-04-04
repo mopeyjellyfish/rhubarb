@@ -74,6 +74,10 @@ class Rhubarb:
 
         :param url: URL for the backend service
         :type url: str
+        :param serializer: URL for the backend service
+        :type serializer: Optional[Callable[[Any], str]]
+        :param deserializer: URL for the backend service
+        :type deserializer: Optional[Callable[[str], Any]]
         """
         self.logger: Logger = logging.getLogger(__name__)
         backend_cls = self.get_backend(url)
@@ -175,7 +179,7 @@ class Rhubarb:
         :param channel: channel name
         :type channel: str
         :param message: message to publish to the provided channel name
-        :type message: str
+        :type message: Any
         """
         _message = None
         if self._serializer:  # if a serializer has been provided then call

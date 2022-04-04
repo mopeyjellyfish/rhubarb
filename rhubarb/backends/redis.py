@@ -51,7 +51,9 @@ class RedisBackend(BaseBackend):
 
         for channel in list(self._group_readers.keys()):
             for consumer in list(self._group_readers[channel].keys()):
-                await self.group_unsubscribe(channel, consumer.group, consumer.consumer)
+                await self.group_unsubscribe(
+                    channel, consumer.group, consumer.consumer
+                )  # pragma: no cover
 
         self.logger.info("Disconnected from %s", self.url)
 
@@ -226,7 +228,7 @@ class RedisBackend(BaseBackend):
             if group_consumer not in self._group_readers.get(
                 channel
             ):  # check if the group consumer has unsubscribed and break out
-                break
+                break  # pragma: no cover
             else:
                 await asyncio.sleep(0)
 
@@ -258,7 +260,7 @@ class RedisBackend(BaseBackend):
             )
         except aioredis.ResponseError as e:
             if str(e) != "BUSYGROUP Consumer Group name already exists":
-                raise
+                raise  # pragma: no cover
 
         self.logger.info(
             "Creating reader task on channel '%s' for group '%s' consumer '%s'",
@@ -274,7 +276,7 @@ class RedisBackend(BaseBackend):
         if group_consumer in self._group_readers[channel]:
             self.logger.warning(
                 "Consumer %s is already reading in group %s", consumer_name, group_name
-            )
+            )  # pragma: no cover
 
         self._group_readers[channel][group_consumer] = asyncio.create_task(
             self._group_reader(channel, group_consumer, queue)

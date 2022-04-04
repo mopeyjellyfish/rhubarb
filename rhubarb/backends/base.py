@@ -45,6 +45,7 @@ class BaseBackend(ABC):
         channel: str,
         group_name: str,
         consumer_name: str,
+        queue: asyncio.Queue[Union[Event, None]],
     ):
         """Called to subscribe to a channel as part of a consumer (``consumer_name``) within a group (``groupd_name``)
 
@@ -58,11 +59,7 @@ class BaseBackend(ABC):
         raise NotImplementedError()
 
     async def group_unsubscribe(
-        self,
-        channel: str,
-        group_name: str,
-        consumer_name: str,
-        queue: asyncio.Queue[Union[Event, None]],
+        self, channel: str, group_name: str, consumer_name: str
     ):
         """Called to unsubscribe from a channel based on the group name and consumer name
 

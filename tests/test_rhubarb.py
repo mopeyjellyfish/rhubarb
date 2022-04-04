@@ -307,12 +307,31 @@ class TestRhubarb:
         else:
             pytest.xfail(f"{URL} backend not supported")
 
-    async def test_group_subscribe_errors(self, queue_json):
+    async def test_group_subscribe_errors_no_consumer(self, queue_json):
         """If specifying a group but not a name or a name but not a group that an error occurs"""
         with raises(SubscribeError):
             async with queue_json.subscribe("TEST-GROUP-CHANNEL", group_name="group"):
                 pass
 
+    async def test_group_subscribe_errors_no_group(self, queue_json):
+        """If specifying a group but not a name or a name but not a group that an error occurs"""
         with raises(SubscribeError):
             async with queue_json.subscribe("TEST-GROUP-CHANNEL", consumer_name="name"):
                 pass
+
+    async def test_group_subscribe_errors(self, URL):
+        """test that other backends have an error during subscribing"""
+        if "redis" not in URL:  # currently only supported by redis
+            with pytest.raises(NotImplementedError):
+                async with Rhubarb(URL) as queue:
+                    async with queue.subscribe(
+                        "TEST-GROUP-CHANNEL",
+                        group_name="TEST_GROUP",
+                        consumer_name="sub_1",
+                    ) as subscriber:
+                        for _ in subscriber:
+                            # nothing to read
+                            break
+
+        else:
+            pytest.xfail(f"{URL} backend supports group consume")

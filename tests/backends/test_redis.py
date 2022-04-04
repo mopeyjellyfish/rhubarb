@@ -55,6 +55,21 @@ class TestRedisBackend:
     async def test_redis_unsubscribe_unknown_channel(self, redis):
         await redis.unsubscribe("unknown-channel-name")
 
+    async def test_redis_group_unsubscribe_unknown_channel(self, redis):
+        await redis.group_unsubscribe(
+            channel="unknown-channel-name",
+            group_name="unknown-group",
+            consumer_name="unknown_name",
+        )
+
+    async def test_redis_known_channel_unknown_consumer(self, redis):
+        redis._group_readers["channel-name"] = {}
+        await redis.group_unsubscribe(
+            channel="channel-name",
+            group_name="unknown-group",
+            consumer_name="unknown_name",
+        )
+
     async def test_duplicate_subscribe_request(self, redis):
         await redis.subscribe("test-channel")
         original_pub_sub = redis._channels["test-channel"]
