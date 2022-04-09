@@ -3,7 +3,6 @@ from typing import AsyncGenerator
 import asyncio
 
 import pytest_asyncio
-from aioredis.exceptions import ConnectionError
 from pytest import fixture, mark, raises
 
 from rhubarb.backends.memory import MemoryBackend

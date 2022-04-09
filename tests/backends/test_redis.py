@@ -3,8 +3,8 @@ from typing import AsyncGenerator
 import asyncio
 
 import pytest_asyncio
-from aioredis.exceptions import ConnectionError
 from pytest import fixture, mark, raises
+from redis.exceptions import ConnectionError
 
 from rhubarb.backends.redis import RedisBackend
 from rhubarb.event import Event

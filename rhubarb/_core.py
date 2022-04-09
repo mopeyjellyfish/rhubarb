@@ -300,9 +300,9 @@ class Rhubarb:
         self,
         channel: str,
         queue: asyncio.Queue[Union[Event, None]],
-        group_name: str,
-        consumer_name: str,
-    ) -> asyncio.Queue[Union[Event, None]]:
+        group_name: Optional[str],
+        consumer_name: Optional[str],
+    ) -> None:
         """Subscribes a consumer to a group, will request the group to be created in the backend if required.
 
         Will only subscribe the backend if the channel has not already been used.

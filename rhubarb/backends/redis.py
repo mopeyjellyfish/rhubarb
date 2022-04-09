@@ -1,24 +1,22 @@
-from typing import Any, AsyncIterator, List, Union
+from typing import Any, AsyncIterator, Union
 
 import asyncio
 import logging
 from collections import namedtuple
 from contextlib import suppress
 from logging import Logger
-from time import sleep
 
-import aioredis
+from redis import asyncio as aioredis
 
 from rhubarb.backends.base import BaseBackend
 from rhubarb.event import Event
-from tests.test_rhubarb import queue
 
 GroupConsumer = namedtuple("GroupConsumer", "group consumer")
 
 
 class RedisBackend(BaseBackend):
     def __init__(self, url: str):
-        """Backend for the message queue using ``aioredis`` to interface with redis
+        """Backend for the message queue using asyncio ``redis`` to interface with redis
 
         :param url: The URL of the redis instance
         :type url: str

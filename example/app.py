@@ -5,7 +5,7 @@ from starlette.concurrency import run_until_first_complete
 from starlette.responses import HTMLResponse
 from starlette.routing import Route, WebSocketRoute
 
-from rhubarb import Rhubarb  # type: ignore[attr-defined]
+from rhubarb import Rhubarb
 
 URL = os.environ.get("URL", "redis://localhost:6379/0")
 
