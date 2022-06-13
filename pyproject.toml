@@ -66,7 +66,7 @@ pytest-cov = "^3.0.0"
 asyncpg = ">=0.24,<0.26"
 aiokafka = "^0.7.2"
 aio-pika = ">=6.8,<9.0"
-hypothesis = "^6.46.9"
+hypothesis = "^6.47.2"
 
 [tool.black]
 # https://github.com/psf/black
