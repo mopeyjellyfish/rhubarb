@@ -29,14 +29,14 @@ snappy = ["python-snappy (>=0.5)"]
 
 [[package]]
 name = "aiormq"
-version = "6.3.3"
+version = "6.3.4"
 description = "Pure python AMQP asynchronous client library"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
-pamqp = "3.1.0"
+pamqp = "3.2.0"
 yarl = "*"
 
 [package.extras]
@@ -546,7 +546,7 @@ pyparsing = ">=2.0.2,<3.0.5 || >3.0.5"
 
 [[package]]
 name = "pamqp"
-version = "3.1.0"
+version = "3.2.0"
 description = "RabbitMQ Focused AMQP low-level library"
 category = "main"
 optional = false
@@ -1104,8 +1104,8 @@ aiokafka = [
     {file = "aiokafka-0.7.2.tar.gz", hash = "sha256:a8fc41d18731d8879483aecb93ae7ebf5457f63daf4c8923ddc046792c2c3096"},
 ]
 aiormq = [
-    {file = "aiormq-6.3.3-py3-none-any.whl", hash = "sha256:fe608df34bd699bc19a25fbb0feecf75a8a6d9b342bad07660edc2196abeba6e"},
-    {file = "aiormq-6.3.3.tar.gz", hash = "sha256:7cb02133fa9b2b7d7da63633061b22b660e06c4b2ba881b2cb500e89907a25b4"},
+    {file = "aiormq-6.3.4-py3-none-any.whl", hash = "sha256:9bde835724b767061b0815b0daeb782a04e48e5a9984da1714b7563dfb281517"},
+    {file = "aiormq-6.3.4.tar.gz", hash = "sha256:479b5323f897002efd50976df5fe2359bd19c7ebb65d37626af270d24a38522e"},
 ]
 alabaster = [
     {file = "alabaster-0.7.12-py2.py3-none-any.whl", hash = "sha256:446438bdcca0e05bd45ea2de1668c1d9b032e1a9154c2c259092d77031ddd359"},
@@ -1514,7 +1514,7 @@ packaging = [
     {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},
 ]
 pamqp = [
-    {file = "pamqp-3.1.0.tar.gz", hash = "sha256:e4f0886d72c6166637a5513626148bf5a7e818073a558980e9aaed8b4ccf30da"},
+    {file = "pamqp-3.2.0.tar.gz", hash = "sha256:43b8545ef2d5b8aa0a41b3461bba0b2759da1fc403a3cb73341b3fce0592033d"},
 ]
 pathspec = [
     {file = "pathspec-0.9.0-py2.py3-none-any.whl", hash = "sha256:7d15c4ddb0b5c802d161efc417ec1a2558ea2653c2e8ad9c19098201dc1c993a"},
