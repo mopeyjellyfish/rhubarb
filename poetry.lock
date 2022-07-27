@@ -1,13 +1,13 @@
 [[package]]
 name = "aio-pika"
-version = "8.0.3"
+version = "8.1.0"
 description = "Wrapper for the aiormq for asyncio and humans."
 category = "main"
 optional = false
 python-versions = ">3.6, <4"
 
 [package.dependencies]
-aiormq = ">=6.3.2,<6.4.0"
+aiormq = ">=6.4.0,<6.5.0"
 yarl = "*"
 
 [package.extras]
@@ -29,7 +29,7 @@ snappy = ["python-snappy (>=0.5)"]
 
 [[package]]
 name = "aiormq"
-version = "6.3.4"
+version = "6.4.0"
 description = "Pure python AMQP asynchronous client library"
 category = "main"
 optional = false
@@ -1077,8 +1077,8 @@ content-hash = "6a8beb76f98e4b3c30a4449bc494d842c8fb16f72ad9f99d1a8711833bc0af40
 
 [metadata.files]
 aio-pika = [
-    {file = "aio-pika-8.0.3.tar.gz", hash = "sha256:3cfe5d994a079a6836383f610990499e60b00503814bc208c2392153261573f5"},
-    {file = "aio_pika-8.0.3-py3-none-any.whl", hash = "sha256:ce3b1501abd4c93ef2b01f7b8245e432d2ea5eb4a1286c4b5ff5d72e22feffd7"},
+    {file = "aio-pika-8.1.0.tar.gz", hash = "sha256:ddaa75c3bd6aca4d0b9e08bf77239ff247e26608738d3cd2ffd82cfee3614762"},
+    {file = "aio_pika-8.1.0-py3-none-any.whl", hash = "sha256:92a13d2ebd95333b5e727ea8d0025bd0ccfabbf129e65cb715a3ea9e679a9784"},
 ]
 aiokafka = [
     {file = "aiokafka-0.7.2-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:b19f077e12fe23e359f7a7dca9baf8532c63f4c8149703ce4c56de372d17e26c"},
@@ -1104,8 +1104,8 @@ aiokafka = [
     {file = "aiokafka-0.7.2.tar.gz", hash = "sha256:a8fc41d18731d8879483aecb93ae7ebf5457f63daf4c8923ddc046792c2c3096"},
 ]
 aiormq = [
-    {file = "aiormq-6.3.4-py3-none-any.whl", hash = "sha256:9bde835724b767061b0815b0daeb782a04e48e5a9984da1714b7563dfb281517"},
-    {file = "aiormq-6.3.4.tar.gz", hash = "sha256:479b5323f897002efd50976df5fe2359bd19c7ebb65d37626af270d24a38522e"},
+    {file = "aiormq-6.4.0-py3-none-any.whl", hash = "sha256:0e38a3c63d606a976c8b1045c10ac8edfb80c3212964672589e0eca43766f7e1"},
+    {file = "aiormq-6.4.0.tar.gz", hash = "sha256:1c7b0df934734453a6d858520da98cb21023ac5b770fa4a8dcee187f0ae568f5"},
 ]
 alabaster = [
     {file = "alabaster-0.7.12-py2.py3-none-any.whl", hash = "sha256:446438bdcca0e05bd45ea2de1668c1d9b032e1a9154c2c259092d77031ddd359"},
