@@ -1,8 +1,9 @@
-from typing import Any, AsyncGenerator, AsyncIterator, Callable, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 import asyncio
 import json
 import logging
+from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager, suppress
 from logging import Logger
 from urllib.parse import urlparse
@@ -192,7 +193,10 @@ class Rhubarb:
         await self._backend.publish(channel, _message)
 
     async def _get_history(
-        self, channel: str, queue: asyncio.Queue[Union[Event, None]], count: int = 0
+        self,
+        channel: str,
+        queue: asyncio.Queue[Union[Event, None]],
+        count: Optional[int] = 0,
     ) -> None:
         """Get the last `n` events from the backend
 
@@ -204,12 +208,15 @@ class Rhubarb:
         :type count: int
         """
         self.logger.info("Retrieving %s events from channel '%s'", count, channel)
-        if count > 0:
+        if count is not None and count > 0:
             async for event in self._backend.history(channel, count=count):
                 queue.put_nowait(event)
 
     async def _subscribe(
-        self, channel: str, queue: asyncio.Queue[Union[Event, None]], history: int = 0
+        self,
+        channel: str,
+        queue: asyncio.Queue[Union[Event, None]],
+        history: Optional[int] = 0,
     ) -> asyncio.Queue[Union[Event, None]]:
         """Subscribes a queue to the channel and subscribes to the channel in the backend
 
@@ -270,8 +277,8 @@ class Rhubarb:
         self,
         channel: str,
         queue: asyncio.Queue[Union[Event, None]],
-        group_name: str,
-        consumer_name: str,
+        group_name: Optional[str],
+        consumer_name: Optional[str],
     ) -> None:
         """Handles unsubscribing a single consumer from a group
 

@@ -97,11 +97,11 @@ class RabbitMQBackend(BaseBackend):
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:
                 async with message.process():
-                    message = message.body.decode()
+                    raw_message = message.body.decode()
                     self.logger.debug(
                         "Read message '%s' from channel '%s'", message, queue.name
                     )
-                    event = Event(channel=queue.name, message=message)
+                    event = Event(channel=queue.name, message=raw_message)
                     self._listen_queue.put_nowait(event)
 
     async def next_event(self) -> Union[Event, None]:

@@ -1,4 +1,3 @@
-# type: ignore[attr-defined]
 """Rhubarb is a library that simplifies realtime streaming for a number of backends into a single API"""
 
 import sys

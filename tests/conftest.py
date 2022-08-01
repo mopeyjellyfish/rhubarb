@@ -1,7 +1,6 @@
-from typing import Generator
-
 import asyncio
 from asyncio.events import AbstractEventLoop
+from collections.abc import Generator
 
 import pytest_asyncio
 from pytest import fixture

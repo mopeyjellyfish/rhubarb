@@ -1,7 +1,8 @@
-from typing import Any, AsyncIterator, List, Optional, Set, Union
+from typing import Any, List, Optional, Set, Union
 
 import asyncio
 import logging
+from collections.abc import AsyncIterator
 from contextlib import suppress
 from logging import Logger
 from urllib.parse import urlparse
@@ -58,8 +59,8 @@ class KafkaBackend(BaseBackend):
         """Stops the consumer task and the AIOKafkaConsumer object"""
         self.logger.info("Stopping consumer...")
         if self._consumer_reader_task:
-            self.logger.info("Cancel consumer task...")
-            self._consumer_reader_task.cancel()  # type: ignore
+            self.logger.info("Cancel consumer task...")  # type: ignore
+            self._consumer_reader_task.cancel()
             with suppress(asyncio.exceptions.CancelledError):
                 await self._consumer_reader_task
             self.logger.info("Stopping Kafka Consumer...")

@@ -1,8 +1,9 @@
-from typing import Any, AsyncIterator, Union
+from typing import Any, Union
 
 import asyncio
 import logging
 from collections import namedtuple
+from collections.abc import AsyncIterator
 from contextlib import suppress
 from logging import Logger
 
@@ -24,7 +25,7 @@ class RedisBackend(BaseBackend):
         self.url: str = url
         self._channels: dict[str, asyncio.Task[None]] = {}  # the channels subscribed to
         self._group_readers: dict[
-            str, dict[str, asyncio.Task[None]]
+            str, dict[GroupConsumer, asyncio.Task[None]]
         ] = {}  # hanndles many group readers
         self._channel_latest_id: dict[str, int] = {}
         self.logger: Logger = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ class RedisBackend(BaseBackend):
         """
         self.logger.info("Connecting to '%s'", self.url)
         self._listen_queue: asyncio.Queue[Union[Event, None]] = asyncio.Queue()
-        self._redis = aioredis.from_url(
+        self._redis = aioredis.from_url(  # type: ignore
             self.url, encoding="utf-8", decode_responses=True
         )
         await self._redis.ping()  # causes aioredis to connect immediately
@@ -167,7 +168,7 @@ class RedisBackend(BaseBackend):
         channel: str,
         group_consumer: GroupConsumer,
         queue: asyncio.Queue[Union[Event, None]],
-    ):
+    ) -> None:
         """A group reader will take a channel and group_consumer to consume messages that are put onto the queue
         allowing for an at-most-once delivery of messages for a group of subscribers.
 
@@ -184,7 +185,7 @@ class RedisBackend(BaseBackend):
             group_consumer.group,
             group_consumer.consumer,
         )
-        streams: dict[str, int] = {channel: ">"}
+        streams: dict[str, str] = {channel: ">"}
         while True:
             response = await self._redis.xreadgroup(
                 group_consumer.group, group_consumer.consumer, streams=streams, count=1
@@ -223,7 +224,7 @@ class RedisBackend(BaseBackend):
                         group_consumer.group,
                         id(queue),
                     )
-            if group_consumer not in self._group_readers.get(
+            if group_consumer not in self._group_readers.get(  # type: ignore
                 channel
             ):  # check if the group consumer has unsubscribed and break out
                 break  # pragma: no cover
@@ -236,7 +237,7 @@ class RedisBackend(BaseBackend):
         group_name: str,
         consumer_name: str,
         queue: asyncio.Queue[Union[Event, None]],
-    ):
+    ) -> None:
         """Called to subscribe to a channel as part of a consumer (``consumer_name``) within a group (``groupd_name``)
 
         :param channel: name of the channel in the queue to subscribe to
@@ -256,7 +257,7 @@ class RedisBackend(BaseBackend):
             await self._redis.xgroup_create(
                 name=channel, groupname=group_name, mkstream=True
             )
-        except aioredis.ResponseError as e:
+        except aioredis.ResponseError as e:  # type: ignore
             if str(e) != "BUSYGROUP Consumer Group name already exists":
                 raise  # pragma: no cover
 
@@ -288,7 +289,7 @@ class RedisBackend(BaseBackend):
 
     async def group_unsubscribe(
         self, channel: str, group_name: str, consumer_name: str
-    ):
+    ) -> None:
         """Called to unsubscribe from a channel based on the group name and consumer name
 
         :param channel: name of the channel in the queue to subscribe to
@@ -299,7 +300,7 @@ class RedisBackend(BaseBackend):
         :type consumer_name: str
         """
         self.logger.info("Unsubscribing from '%s'", channel)
-        if (channel := self._group_readers.get(channel)) is not None:
+        if (channel := self._group_readers.get(channel)) is not None:  # type: ignore
             self.logger.debug(
                 "Cancelling task for '%s' channel group '%s' consumer '%s'",
                 channel,
@@ -307,12 +308,12 @@ class RedisBackend(BaseBackend):
                 consumer_name,
             )
             group_consumer = GroupConsumer(group_name, consumer_name)
-            if (task := channel.get(group_consumer)) is not None:
+            if (task := channel.get(group_consumer)) is not None:  # type: ignore
                 self.logger.debug("Task %s", task)
                 task.cancel()
                 with suppress(asyncio.CancelledError):
                     self.logger.debug("Waiting for '%s' reader task to cancel...", task)
-                    del channel[group_consumer]  # signal for the reader to close
+                    del channel[group_consumer]  # type: ignore
                     await task  # wait for the reader to close
             else:
                 self.logger.warning(

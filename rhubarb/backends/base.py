@@ -1,7 +1,8 @@
-from typing import Any, AsyncIterator, List, Union
+from typing import Any, List, Union
 
 import asyncio
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 
 from rhubarb.event import Event
 
@@ -46,7 +47,7 @@ class BaseBackend(ABC):
         group_name: str,
         consumer_name: str,
         queue: asyncio.Queue[Union[Event, None]],
-    ):
+    ) -> None:
         """Called to subscribe to a channel as part of a consumer (``consumer_name``) within a group (``groupd_name``)
 
         :param channel: name of the channel in the queue to subscribe to
@@ -60,7 +61,7 @@ class BaseBackend(ABC):
 
     async def group_unsubscribe(
         self, channel: str, group_name: str, consumer_name: str
-    ):
+    ) -> None:
         """Called to unsubscribe from a channel based on the group name and consumer name
 
         :param channel: name of the channel in the queue to subscribe to

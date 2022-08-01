@@ -329,7 +329,7 @@ class TestRhubarb:
                         group_name="TEST_GROUP",
                         consumer_name="sub_1",
                     ) as subscriber:
-                        for _ in subscriber:
+                        async for _ in subscriber:
                             # nothing to read
                             break
 
