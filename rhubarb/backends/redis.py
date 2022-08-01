@@ -7,7 +7,6 @@ from collections.abc import AsyncIterator
 from contextlib import suppress
 from logging import Logger
 
-from aio_pika import message
 from redis import asyncio as aioredis
 
 from rhubarb.backends.base import BaseBackend
