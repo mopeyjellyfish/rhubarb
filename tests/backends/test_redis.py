@@ -1,9 +1,8 @@
-from typing import AsyncGenerator
-
 import asyncio
+from collections.abc import AsyncGenerator
 
 import pytest_asyncio
-from pytest import fixture, mark, raises
+from pytest import mark, raises
 from redis.exceptions import ConnectionError
 
 from rhubarb.backends.redis import RedisBackend

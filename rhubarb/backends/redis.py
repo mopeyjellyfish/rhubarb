@@ -7,6 +7,7 @@ from collections.abc import AsyncIterator
 from contextlib import suppress
 from logging import Logger
 
+from aio_pika import message
 from redis import asyncio as aioredis
 
 from rhubarb.backends.base import BaseBackend
@@ -217,6 +218,9 @@ class RedisBackend(BaseBackend):
                         id(queue),
                     )
                     await queue.join()
+                    await self._redis.xack(
+                        stream_name, group_consumer.group, message_id
+                    )  # acknowledge the message as read after the caller has processed the event
                     self.logger.debug(
                         "Stream '%s' Consumer '%s' Group '%s' Queue finished... %s",
                         stream_name,

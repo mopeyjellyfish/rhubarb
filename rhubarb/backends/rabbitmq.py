@@ -1,10 +1,9 @@
-from typing import Any, List, Optional, Set, Union
+from typing import Any, Union
 
 import asyncio
 import logging
 from contextlib import suppress
 from logging import Logger
-from urllib.parse import urlparse
 
 import aio_pika
 

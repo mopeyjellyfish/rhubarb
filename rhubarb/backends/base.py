@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import Any, Union
 
 import asyncio
 from abc import ABC, abstractmethod

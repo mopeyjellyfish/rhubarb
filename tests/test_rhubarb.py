@@ -1,9 +1,7 @@
 import asyncio
 import json
-import random
 from asyncio.exceptions import TimeoutError
 from contextlib import suppress
-from logging import Logger
 from multiprocessing import Process
 
 import pytest
@@ -12,8 +10,7 @@ from anyio import Event
 from async_timeout import timeout
 from hypothesis import given
 from hypothesis import strategies as st
-from pyexpat.errors import messages
-from pytest import fixture, mark, raises
+from pytest import mark, raises
 
 from rhubarb._core import Rhubarb, SubscribeError, UnknownBackend, Unsubscribed
 from rhubarb.backends.base import BaseBackend
