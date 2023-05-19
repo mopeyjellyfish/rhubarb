@@ -8,7 +8,7 @@ deprecated==1.2.13; python_version >= "3.6" and python_full_version < "3.0.0" or
 idna==3.3; python_version >= "3.6" and python_full_version >= "3.6.2" and python_version < "4"
 kafka-python==2.0.2
 multidict==6.0.2; python_version >= "3.7" and python_version < "4"
-packaging==21.3; python_version >= "3.6"
+packaging==23.1; python_version >= "3.6"
 pamqp==2.3.0; python_version > "3.5" and python_version < "4"
 pyparsing==3.0.9; python_version >= "3.6"
 redis==4.2.2; python_version >= "3.6"
