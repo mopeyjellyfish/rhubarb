@@ -40,7 +40,7 @@ Installation
 
    pip install -U rhubarb-py
 
-or install with `Poetry`
+or install with ``Poetry``
 
 .. code-block:: bash
 

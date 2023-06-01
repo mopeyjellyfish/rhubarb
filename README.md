@@ -55,7 +55,7 @@ async with Rhubarb("redis://localhost:6379/0") as events:
 ### History retrieval
 
 ```python
-async with Rhubarb("redis://localhost:6379/0") as events: 
+async with Rhubarb("redis://localhost:6379/0") as events:
     async with events.subscribe(channel="CHATROOM", history=10) as subscriber: # read the last 10 events published to the channel
         async for event in subscriber:
             await websocket.send_text(event.message)
