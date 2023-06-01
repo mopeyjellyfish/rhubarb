@@ -1,30 +1,21 @@
-name: Release
+name: Publish to PyPI
 on:
   release:
-    types:
-      - created
+    types: [published]
 
 jobs:
-  publish:
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [3.9]
-        poetry-version: [1.1.2]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+  pypi_release:
+    name: Builds Using Poetry and Publishes to PyPI
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Run image
-        uses: abatilo/actions-poetry@v2.0.0
-        with:
-          poetry-version: ${{ matrix.poetry-version }}
-      - name: Publish
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          poetry config pypi-token.pypi $PYPI_TOKEN
-          poetry publish --build
+      - name: Install Poetry
+        run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+      - name: Add Poetry to path
+        run: echo "${HOME}/.poetry/bin" >> $GITHUB_PATH
+      - run: poetry install
+      - run: poetry run pytest
+      - run: poetry config pypi-token.pypi "${{ secrets.PYPI_API_KEY }}"
+      - name: Publish package
+        run: poetry publish --build
