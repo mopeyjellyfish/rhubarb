@@ -8,7 +8,7 @@ import pytest
 import pytest_asyncio
 from anyio import Event
 from async_timeout import timeout
-from hypothesis import given
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from pytest import mark, raises
 
@@ -63,6 +63,7 @@ class TestRhubarb:
             alphabet=st.characters(blacklist_categories=("Cs", "Cc")),
         )
     )
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
     async def test_subscribe_and_publish(self, queue, subscriber, message):
         await queue.publish("test-channel", message)
         event = await subscriber.get()

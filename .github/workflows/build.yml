@@ -10,78 +10,79 @@ jobs:
         python-version: ["3.9", "3.10"]
 
     services:
-        zookeeper:
-          image: confluentinc/cp-zookeeper
-          ports:
+      zookeeper:
+        image: confluentinc/cp-zookeeper
+        ports:
           - 32181:32181
-          env:
-            ZOOKEEPER_CLIENT_PORT: 32181
-            ALLOW_ANONYMOUS_LOGIN: yes
-          options: --hostname zookeeper
-        kafka:
-          image: confluentinc/cp-kafka
-          ports:
+        env:
+          ZOOKEEPER_CLIENT_PORT: 32181
+          ALLOW_ANONYMOUS_LOGIN: yes
+        options: --hostname zookeeper
+      kafka:
+        image: confluentinc/cp-kafka
+        ports:
           - 9092:9092
           - 29092:29092
-          env:
-            KAFKA_ZOOKEEPER_CONNECT: "zookeeper:32181"
-            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
-            KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT_HOST://localhost:29092,PLAINTEXT://localhost:9092"
-            KAFKA_BROKER_ID: 1
-            ALLOW_PLAINTEXT_LISTENER: yes
-          options: --hostname kafka
-        redis:
-          image: redis:alpine
-          ports:
+        env:
+          KAFKA_ZOOKEEPER_CONNECT: "zookeeper:32181"
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+          KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT_HOST://localhost:29092,PLAINTEXT://localhost:9092"
+          KAFKA_BROKER_ID: 1
+          ALLOW_PLAINTEXT_LISTENER: yes
+        options: --hostname kafka
+      redis:
+        image: redis:alpine
+        ports:
           - 6379:6379
-        rabbitmq:
-          image: rabbitmq:latest
-          ports:
-            - 5672:5672
-        postgres:
-          image: postgres:14
-          env:
-            POSTGRES_DB: rhubarb
-            POSTGRES_PASSWORD: postgres
-            POSTGRES_HOST_AUTH_METHOD: trust
-            POSTGRES_USER: postgres
-          ports:
+      rabbitmq:
+        image: rabbitmq:latest
+        ports:
+          - 5672:5672
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: rhubarb
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_USER: postgres
+        ports:
           - 5432:5432
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4.1.0
-      with:
-        python-version: ${{ matrix.python-version }}
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4.1.0
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install poetry
-      run: make poetry-download
+      - name: Install poetry
+        run: make poetry-download
 
-    - name: Set up cache
-      uses: actions/cache@v3.0.5
-      with:
-        path: .venv
-        key: venv-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('poetry.lock') }}
-    - name: Install dependencies
-      run: |
-        poetry config virtualenvs.in-project true
-        poetry install
+      - name: Set up cache
+        uses: actions/cache@v3.0.5
+        with:
+          path: .venv
+          key: venv-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('poetry.lock') }}
+      - name: Install dependencies
+        run: |
+          poetry config virtualenvs.in-project true
+          poetry install
 
-    - name: Run style checks
-      run: |
-        make check-codestyle
+      - name: Run style checks
+        run: |
+          make check-codestyle
 
-    - name: Run tests
-      run: |
-        make test
+      - name: Run tests
+        run: |
+          make test
 
-    - name: "Upload coverage to Codecov"
-      uses: codecov/codecov-action@v3
-      with:
-        fail_ci_if_error: true
+      - name: "Upload coverage to Codecov"
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          fail_ci_if_error: true
 
-    - name: Run safety checks
-      run: |
-        make check-safety
+      - name: Run safety checks
+        run: |
+          make check-safety
