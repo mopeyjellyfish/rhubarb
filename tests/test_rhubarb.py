@@ -7,7 +7,12 @@ from multiprocessing import Process
 import pytest
 import pytest_asyncio
 from anyio import Event
-from async_timeout import timeout
+
+try:
+    from async_timeout import timeout
+except ModuleNotFoundError:
+    from asyncio import timeout
+
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from pytest import mark, raises
@@ -272,7 +277,7 @@ class TestRhubarb:
             p.join()
 
     async def test_group_subscribe(self, URL):
-        expected_messages = list(str(i) for i in range(10))
+        expected_messages = [str(i) for i in range(10)]
 
         async def read_subscriptions(subscriber):
             tasks = []
