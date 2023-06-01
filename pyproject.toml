@@ -5,9 +5,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "rhubarb-py"
-packages = [
-    {include = "rhubarb"}
-]
+packages = [{ include = "rhubarb" }]
 version = "1.7.0"
 description = "Rhubarb is a library that simplifies realtime streaming for a number of backends into a single API"
 readme = "README.md"
@@ -17,10 +15,10 @@ repository = "https://github.com/mopeyjellyfish/rhubarb"
 homepage = "https://github.com/mopeyjellyfish/rhubarb"
 
 # Keywords description https://python-poetry.org/docs/pyproject/#keywords
-keywords = []  #! Update me
+keywords = [] #! Update me
 
 # Pypi classifiers: https://pypi.org/classifiers/
-classifiers = [  #! Update me
+classifiers = [ #! Update me
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
   "Operating System :: OS Independent",
@@ -31,14 +29,13 @@ classifiers = [  #! Update me
 ]
 
 
-
 [tool.poetry.dependencies]
 python = "^3.9"
 aiokafka = "^0.7.2"
 asyncpg = ">=0.24,<0.27"
 aio-pika = ">=6.8,<9.0"
 anyio = "^3.4.0"
-redis = "4.3.4"
+redis = "^4.3.4"
 
 [tool.poetry.extras]
 redis = ["redis"]
@@ -48,9 +45,9 @@ rabbitmq = ["aio-pika"]
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.4"
-black = {version = "^22.6", allow-prereleases = true}
+black = { version = "^22.6", allow-prereleases = true }
 darglint = "^1.8.0"
-isort = {extras = ["colors"], version = "^5.9.3"}
+isort = { extras = ["colors"], version = "^5.9.3" }
 mypy = "^0.971"
 mypy-extensions = "^0.4.3"
 pre-commit = "^2.20.0"
@@ -95,8 +92,21 @@ exclude = '''
 py_version = 39
 line_length = 88
 
-known_typing = ["typing", "types", "typing_extensions", "mypy", "mypy_extensions"]
-sections = ["FUTURE", "TYPING", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+known_typing = [
+  "typing",
+  "types",
+  "typing_extensions",
+  "mypy",
+  "mypy_extensions",
+]
+sections = [
+  "FUTURE",
+  "TYPING",
+  "STDLIB",
+  "THIRDPARTY",
+  "FIRSTPARTY",
+  "LOCALFOLDER",
+]
 include_trailing_comma = true
 profile = "black"
 multi_line_output = 3
@@ -130,12 +140,25 @@ warn_unused_configs = true
 warn_unused_ignores = true
 
 
-
 [tool.pytest.ini_options]
 # https://docs.pytest.org/en/6.2.x/customize.html#pyproject-toml
 # Directories that are not visited by pytest collector:
-norecursedirs =["hooks", "*.egg", ".eggs", "dist", "build", "docs", ".tox", ".git", "__pycache__"]
-doctest_optionflags = ["NUMBER", "NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL"]
+norecursedirs = [
+  "hooks",
+  "*.egg",
+  ".eggs",
+  "dist",
+  "build",
+  "docs",
+  ".tox",
+  ".git",
+  "__pycache__",
+]
+doctest_optionflags = [
+  "NUMBER",
+  "NORMALIZE_WHITESPACE",
+  "IGNORE_EXCEPTION_DETAIL",
+]
 asyncio_mode = "auto"
 # Extra options:
 addopts = [
