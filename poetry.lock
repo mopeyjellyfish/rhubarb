@@ -1266,17 +1266,17 @@ testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtuale
 
 [[package]]
 name = "pyupgrade"
-version = "3.6.0"
+version = "3.10.1"
 description = "A tool to automatically upgrade syntax for newer versions."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.8.1"
 files = [
-    {file = "pyupgrade-3.6.0-py2.py3-none-any.whl", hash = "sha256:747d7eb64534c88d775df67b6e4134680d7eed942495193c053240b329693d2d"},
-    {file = "pyupgrade-3.6.0.tar.gz", hash = "sha256:6e888c168f0684babdb6b820a2d70138435eaf43402b42291c789091dd247fba"},
+    {file = "pyupgrade-3.10.1-py2.py3-none-any.whl", hash = "sha256:f565b4d26daa46ed522e98746834e77e444269103f8bc04413d77dad95169a24"},
+    {file = "pyupgrade-3.10.1.tar.gz", hash = "sha256:1d8d138c2ccdd3c42b1419230ae036d5607dc69465a26feacc069642fc8d1b90"},
 ]
 
 [package.dependencies]
-tokenize-rt = ">=3.2.0"
+tokenize-rt = ">=5.2.0"
 
 [[package]]
 name = "pyyaml"
@@ -1704,13 +1704,13 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
 name = "tokenize-rt"
-version = "5.0.0"
+version = "5.2.0"
 description = "A wrapper around the stdlib `tokenize` which roundtrips."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "tokenize_rt-5.0.0-py2.py3-none-any.whl", hash = "sha256:c67772c662c6b3dc65edf66808577968fb10badfc2042e3027196bed4daf9e5a"},
-    {file = "tokenize_rt-5.0.0.tar.gz", hash = "sha256:3160bc0c3e8491312d0485171dea861fc160a240f5f5766b72a1165408d10740"},
+    {file = "tokenize_rt-5.2.0-py2.py3-none-any.whl", hash = "sha256:b79d41a65cfec71285433511b50271b05da3584a1da144a0752e9c621a285289"},
+    {file = "tokenize_rt-5.2.0.tar.gz", hash = "sha256:9fe80f8a5c1edad2d3ede0f37481cc0cc1538a2f442c9c2f9e4feacd2792d054"},
 ]
 
 [[package]]
@@ -1989,4 +1989,4 @@ redis = ["redis"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "25179865e20241456c6ffa205b9edf7b543ef6c7146280cd0ee2bed026fcc986"
+content-hash = "f33f6730eddc92d584c037526a256662ec6fb96729c52a25eba450bcd0944387"
