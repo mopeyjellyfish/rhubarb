@@ -44,7 +44,7 @@ postgres = ["asyncpg"]
 rabbitmq = ["aio-pika"]
 
 [tool.poetry.dev-dependencies]
-bandit = "^1.7.4"
+bandit = "^1.7.8"
 black = { version = "^23.3", allow-prereleases = true }
 darglint = "^1.8.0"
 isort = { extras = ["colors"], version = "^5.9.3" }
